@@ -1,0 +1,47 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #667eea, #764ba2);
+}
+
+.card {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  width: 350px;
+  text-align: center;
+}
+
+.card h1 {
+  color: #667eea;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+span {
+  color: blue;
+  cursor: pointer;
+}
+
+

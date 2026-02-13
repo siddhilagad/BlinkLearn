@@ -1,0 +1,164 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.home {
+  background: #fff1f6;
+  padding: 30px 80px;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  padding: 15px 30px;
+  border-radius: 15px;
+  margin-bottom: 40px;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: #4f46e5;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+}
+
+.nav-links li {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-actions input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.login-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* HERO */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 60px;
+  border-radius: 20px;
+}
+
+.hero-text {
+  max-width: 520px;
+}
+
+.hero-text h1 {
+  font-size: 36px;
+  margin-bottom: 15px;
+}
+
+.hero-text p {
+  color: #555;
+  margin-bottom: 25px;
+}
+
+.hero-buttons button {
+  margin-right: 15px;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+  border: none;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #ccc;
+}
+
+.hero-image img {
+  width: 350px;
+  border-radius: 15px;
+}
+
+/* FEATURES */
+.features {
+  display: flex;
+  justify-content: space-between;
+  margin: 60px 0;
+}
+
+.feature-card {
+  background: white;
+  padding: 20px;
+  width: 30%;
+  border-radius: 15px;
+  text-align: center;
+}
+
+.feature-card img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* COURSES */
+.courses {
+  margin-top: 60px;
+}
+
+.courses h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.course-card {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+}
+
+.course-card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.course-card span {
+  font-size: 13px;
+  color: gray;
+}
+
+
+
