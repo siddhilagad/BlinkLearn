@@ -1,113 +1,135 @@
+import React from "react";
 import "./home.css";
 
-// hero & feature images
-import hero from "../assets/images/hero.jpg";
-import shortVideos from "../assets/images/short-videos.jpg";
-import progress from "../assets/images/progress.jpg";
-import projects from "../assets/images/projects.jpg";
-
-// course images
-import jsImg from "../assets/images/js.jpg";
-import cssImg from "../assets/images/css.jpg";
-import gitImg from "../assets/images/git.jpg";
-import reactImg from "../assets/images/react.jpg";
-
-function Home() {
+function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
   return (
     <div className="home">
 
       {/* NAVBAR */}
       <nav className="navbar">
-        <div className="logo">BlinkLearn</div>
+        <div className="nav-left">
+          <div className="logo">
+            <div className="logo-icon">▶</div>
+            <h2>blinkLearn</h2>
+          </div>
 
-        <ul className="nav-links">
-          <li>Home</li>
-          <li>Courses</li>
-          <li>About</li>
-        </ul>
+          <div className="search-bar">
+            <input type="text" placeholder="Search courses..." />
+          </div>
+        </div>
 
-        <div className="nav-actions">
-          <input type="text" placeholder="Search courses..." />
-          <button className="login-btn">Login</button>
+        <div className="nav-right">
+          {!isLoggedIn ? (
+            <>
+              <button className="login-btn" onClick={() => setShowAuth(true)}>
+                Sign In
+              </button>
+              <button className="signup-btn" onClick={() => setShowAuth(true)}>
+                Login
+              </button>
+            </>
+          ) : (
+            <button
+              className="signup-btn"
+              onClick={() => setIsLoggedIn(false)}
+            >
+              Logout
+            </button>
+          )}
         </div>
       </nav>
 
       {/* HERO SECTION */}
       <section className="hero">
-        <div className="hero-text">
-          <h1>BlinkLearn — learn in a blink, grow for life</h1>
-          <p>Skill learning website through short, focused videos</p>
+        <div className="hero-left">
+          <span className="trusted">
+            ⭐ Trusted by 50,000+ learners worldwide
+          </span>
+
+          <h1>
+            Master New Skills Through <br /> Short Videos
+          </h1>
+
+          <p>
+            Learn from expert tutors with bite-sized video lessons designed
+            for your busy life.
+          </p>
 
           <div className="hero-buttons">
-            <button className="btn-primary">Get Started</button>
-            <button className="btn-outline">Browse Courses</button>
+            <button className="primary-btn">Get Started Free</button>
+            <button className="secondary-btn">Explore Courses</button>
           </div>
         </div>
 
-        <div className="hero-image">
-          <img src={hero} alt="Online Learning" />
+        <div className="hero-right">
+          <img
+            src="https://images.unsplash.com/photo-1499951360447-b19be8fe80f5"
+            alt="Learning"
+          />
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="features">
-        <div className="feature-card">
-          <img src={shortVideos} alt="Short videos" />
-          <h3>Short Videos</h3>
-          <p>3–10 minute focused lessons</p>
+      {/* STATS */}
+      <section className="stats">
+        <div>
+          <h2>50K+</h2>
+          <p>Active Learners</p>
         </div>
-
-        <div className="feature-card">
-          <img src={progress} alt="Track progress" />
-          <h3>Track Progress</h3>
-          <p>Resume anytime and track learning</p>
+        <div>
+          <h2>200+</h2>
+          <p>Video Courses</p>
         </div>
-
-        <div className="feature-card">
-          <img src={projects} alt="Projects" />
-          <h3>Hands-on Projects</h3>
-          <p>Practice with bite-sized projects</p>
+        <div>
+          <h2>50+</h2>
+          <p>Expert Tutors</p>
+        </div>
+        <div>
+          <h2>4.8★</h2>
+          <p>Average Rating</p>
         </div>
       </section>
 
-      {/* POPULAR COURSES */}
-      <section className="courses">
+      {/* COURSES */}
+      <section className="courses-section">
         <h2>Popular Courses</h2>
 
-        <div className="course-grid">
+        <div className="courses-grid">
           <div className="course-card">
-            <img src={jsImg} alt="JavaScript" />
-            <h4>JavaScript Fundamentals</h4>
-            <p>Basics of JS: variables, functions, DOM</p>
-            <span>8m</span>
+            <h3>Web Development</h3>
+            <img
+            src="https://media.istockphoto.com/id/1201166649/photo/office-responsive-devices-web-design-website.jpg?s=2048x2048&w=is&k=20&c=7OQhRq_0EWxf4EQL66TQ6qRiPtpkmJKl33wM4PPnNM8="
+            alt="Learning"
+          />
+            <p>Learn HTML, CSS, JavaScript</p>
           </div>
 
           <div className="course-card">
-            <img src={cssImg} alt="CSS Flexbox" />
-            <h4>CSS Flexbox Fast</h4>
-            <p>Layout with flexbox in minutes</p>
-            <span>6m</span>
+            <h3>React Development</h3>
+            <img
+            src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Learning"
+          />
+            <p>Build modern web apps</p>
           </div>
 
           <div className="course-card">
-            <img src={gitImg} alt="Git" />
-            <h4>Git Essentials</h4>
-            <p>Commit, branch, merge workflows</p>
-            <span>9m</span>
-          </div>
-
-          <div className="course-card">
-            <img src={reactImg} alt="React" />
-            <h4>React Hooks Intro</h4>
-            <p>useState, useEffect explained</p>
-            <span>10m</span>
+            <h3>UI/UX Design</h3>
+            <img
+            src="https://images.unsplash.com/photo-1586717799252-bd134ad00e26?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            alt="Learning"
+          />
+            <p>Create beautiful designs</p>
           </div>
         </div>
       </section>
+
+      <footer className="footer">
+        <h1>Ready to Start Learning?</h1>
+         <h2>"Learn Today, Lead Tomorrow"</h2>
+      </footer>
 
     </div>
   );
 }
 
 export default Home;
-
