@@ -5,7 +5,6 @@ import course1 from "../assets/images/course1.jpg";
 import course2 from "../assets/images/course2.jpg";
 import course3 from "../assets/images/course3.jpg";
 
-
 const Courses = () => {
   return (
     <div className="courses-page">
@@ -13,7 +12,7 @@ const Courses = () => {
       {/* HERO SECTION */}
       <div className="courses-hero">
         <h1>Explore Courses</h1>
-        <p>Discover your next skill from our expert-led courses</p>
+        <p>Discover your next skill from our expert courses</p>
 
         <div className="search-box">
           <input type="text" placeholder="Search for courses, skills, or topics..." />
@@ -41,7 +40,6 @@ const Courses = () => {
       {/* COURSES GRID */}
       <div className="courses-grid">
 
-        {/* CARD 1 */}
         <div className="course-card">
           <img src={course1} alt="course" />
           <span className="tag">Design</span>
@@ -55,7 +53,6 @@ const Courses = () => {
           </div>
         </div>
 
-        {/* CARD 2 */}
         <div className="course-card">
           <img src={course2} alt="course" />
           <span className="tag dev">Development</span>
@@ -69,12 +66,12 @@ const Courses = () => {
           </div>
         </div>
 
-        {/* CARD 3 */}
         <div className="course-card">
           <img src={course3} alt="course" />
           <span className="tag market">Marketing</span>
           <div className="course-content">
             <h3>Digital Marketing Mastery</h3>
+            
             <p>SEO, social media & content strategy</p>
             <div className="course-info">
               <span>⭐ 4.7</span>

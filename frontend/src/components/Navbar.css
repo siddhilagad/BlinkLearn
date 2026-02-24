@@ -53,6 +53,34 @@
   opacity: 0.9;
   transform: translateY(-1px);
 }
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+/* Signup button */
+.signup-btn {
+  padding: 8px 18px;
+  background: linear-gradient(90deg, #6c63ff, #8f5aff);
+  color: white;
+  text-decoration: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.3s, transform 0.2s;
+}
+
+.signup-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+
+
+
 
 
 

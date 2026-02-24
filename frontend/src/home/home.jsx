@@ -1,43 +1,12 @@
 import React from "react";
 import "./home.css";
+import { useNavigate } from "react-router-dom";
 
 function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
+  const navigate = useNavigate();
+
   return (
     <div className="home">
-
-      {/* NAVBAR */}
-      <nav className="navbar">
-        <div className="nav-left">
-          <div className="logo">
-            <div className="logo-icon">▶</div>
-            <h2>blinkLearn</h2>
-          </div>
-
-          <div className="search-bar">
-            <input type="text" placeholder="Search courses..." />
-          </div>
-        </div>
-
-        <div className="nav-right">
-          {!isLoggedIn ? (
-            <>
-              <button className="login-btn" onClick={() => setShowAuth(true)}>
-                Sign In
-              </button>
-              <button className="signup-btn" onClick={() => setShowAuth(true)}>
-                Login
-              </button>
-            </>
-          ) : (
-            <button
-              className="signup-btn"
-              onClick={() => setIsLoggedIn(false)}
-            >
-              Logout
-            </button>
-          )}
-        </div>
-      </nav>
 
       {/* HERO SECTION */}
       <section className="hero">
@@ -55,11 +24,13 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
             for your busy life.
           </p>
 
-          <div className="hero-buttons">
-            <button className="primary-btn">Get Started Free</button>
-            <button className="secondary-btn">Explore Courses</button>
-          </div>
-        </div>
+          <button
+            className="explore-btn"
+            onClick={() => navigate("/courses")}
+          >
+            Explore courses
+          </button>
+        </div>   {/* ✅ FIXED: Closed hero-left div */}
 
         <div className="hero-right">
           <img
@@ -97,35 +68,42 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
           <div className="course-card">
             <h3>Web Development</h3>
             <img
-            src="https://media.istockphoto.com/id/1201166649/photo/office-responsive-devices-web-design-website.jpg?s=2048x2048&w=is&k=20&c=7OQhRq_0EWxf4EQL66TQ6qRiPtpkmJKl33wM4PPnNM8="
-            alt="Learning"
-          />
+              src="https://media.istockphoto.com/id/1201166649/photo/office-responsive-devices-web-design-website.jpg"
+              alt="Web Development"
+            />
             <p>Learn HTML, CSS, JavaScript</p>
           </div>
 
           <div className="course-card">
             <h3>React Development</h3>
             <img
-            src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Learning"
-          />
+              src="https://images.unsplash.com/photo-1498050108023-c5249f4df085"
+              alt="React Development"
+            />
             <p>Build modern web apps</p>
           </div>
 
           <div className="course-card">
             <h3>UI/UX Design</h3>
             <img
-            src="https://images.unsplash.com/photo-1586717799252-bd134ad00e26?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Learning"
-          />
+              src="https://images.unsplash.com/photo-1586717799252-bd134ad00e26"
+              alt="UI UX Design"
+            />
             <p>Create beautiful designs</p>
           </div>
         </div>
       </section>
 
+      {/* FOOTER */}
       <footer className="footer">
         <h1>Ready to Start Learning?</h1>
-         <h2>"Learn Today, Lead Tomorrow"</h2>
+        <h2>"Learn Today, Lead Tomorrow"</h2>
+
+        <h3>About us</h3>
+        <p>
+          BlinkLearn is a platform dedicated to helping learners acquire new
+          skills through short, engaging video lessons.
+        </p>
       </footer>
 
     </div>

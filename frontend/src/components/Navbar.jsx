@@ -5,28 +5,36 @@ import "./Navbar.css";
 function Navbar() {
   return (
     <nav className="navbar">
-      <h2 className="logo">BlinkLearn</h2>
+      
+      {/* LOGO */}
+      <Link to="/" className="logo-link">
+        <div className="logo">
+          <div className="logo-icon">▶</div>
+          <h2>BlinkLearn</h2>
+        </div>
+      </Link>
 
+      {/* NAV LINKS */}
       <ul className="nav-links">
-        <li><Link to="/courses">Courses</Link></li>
-        <li><Link to="#">About</Link></li>
+        <li>
+          <Link to="/courses">Courses</Link>
+        </li>
+        
       </ul>
 
-      <Link to="/login" className="login-btn">
-        Login
-      </Link>
-        <Link to="/signup" className="signup-btn">
-        Sign Up
-      </Link>
+      {/* AUTH BUTTONS */}
+      <div className="nav-buttons">
+        <Link to="/login">
+          <button className="nav-btn">Login</button>
+        </Link>
+
+        <Link to="/signup">
+          <button className="nav-btn signup-btn">Signup</button>
+        </Link>
+      </div>
 
     </nav>
   );
 }
 
 export default Navbar;
-
-
-
-
-
-
