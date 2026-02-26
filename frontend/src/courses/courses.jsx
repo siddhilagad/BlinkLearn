@@ -1,17 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "./courses.css";
 
+<<<<<<< HEAD
 import course1 from "../assets/images/course1.jpg";
 import course2 from "../assets/images/course2.jpg";
 import course3 from "../assets/images/course3.jpg";
 
+=======
+>>>>>>> f7bcacd (My local changes)
 const Courses = () => {
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/courses");
+      setCourses(res.data);
+    } catch (err) {
+      console.error("Error fetching courses:", err);
+    }
+  };
+
   return (
     <div className="courses-page">
 
       {/* HERO SECTION */}
       <div className="courses-hero">
         <h1>Explore Courses</h1>
+<<<<<<< HEAD
         <p>Discover your next skill from our expert courses</p>
 
         <div className="search-box">
@@ -35,11 +55,15 @@ const Courses = () => {
         <button>Design</button>
         <button>Marketing</button>
         <button>Business</button>
+=======
+        <p>Discover your next skill from our expert-led courses</p>
+>>>>>>> f7bcacd (My local changes)
       </div>
 
       {/* COURSES GRID */}
       <div className="courses-grid">
 
+<<<<<<< HEAD
         <div className="course-card">
           <img src={course1} alt="course" />
           <span className="tag">Design</span>
@@ -76,12 +100,30 @@ const Courses = () => {
             <div className="course-info">
               <span>⭐ 4.7</span>
               <span>18 lessons</span>
+=======
+        {courses.length === 0 ? (
+          <p>No courses available</p>
+        ) : (
+          courses.map((course) => (
+            <div className="course-card" key={course.course_id}>
+              <img src={course.thumbnail} alt="course" />
+
+              <span className="tag">{course.level}</span>
+
+              <div className="course-content">
+                <h3>{course.title}</h3>
+                <p>{course.description}</p>
+
+                <div className="course-info">
+                  <span>₹ {course.price}</span>
+                </div>
+              </div>
+>>>>>>> f7bcacd (My local changes)
             </div>
-          </div>
-        </div>
+          ))
+        )}
 
       </div>
-
     </div>
   );
 };

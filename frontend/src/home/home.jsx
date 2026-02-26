@@ -1,18 +1,75 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "./home.css";
 import { useNavigate } from "react-router-dom";
 
 function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
+<<<<<<< HEAD
   const navigate = useNavigate();
+=======
+
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/courses");
+      setCourses(res.data);
+    } catch (err) {
+      console.error("Error fetching courses:", err);
+    }
+  };
+>>>>>>> f7bcacd (My local changes)
 
   return (
     <div className="home">
 
+<<<<<<< HEAD
       {/* HERO SECTION */}
+=======
+      {/* NAVBAR */}
+      <nav className="navbar">
+        <div className="nav-left">
+          <div className="logo">
+            <div className="logo-icon">▶</div>
+            <h2>blinkLearn</h2>
+          </div>
+
+          <div className="search-bar">
+            <input type="text" placeholder="Search courses..." />
+          </div>
+        </div>
+
+        <div className="nav-right">
+          {!isLoggedIn ? (
+            <>
+              <button className="login-btn" onClick={() => setShowAuth(true)}>
+                Sign In
+              </button>
+              <button className="signup-btn" onClick={() => setShowAuth(true)}>
+                Login
+              </button>
+            </>
+          ) : (
+            <button
+              className="signup-btn"
+              onClick={() => setIsLoggedIn(false)}
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {/* HERO */}
+>>>>>>> f7bcacd (My local changes)
       <section className="hero">
         <div className="hero-left">
           <span className="trusted">
-            ⭐ Trusted by 50,000+ learners worldwide
+            ⭐ Trusted by learners worldwide
           </span>
 
           <h1>
@@ -20,9 +77,9 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
           </h1>
 
           <p>
-            Learn from expert tutors with bite-sized video lessons designed
-            for your busy life.
+            Learn from expert tutors with bite-sized lessons.
           </p>
+<<<<<<< HEAD
 
           <button
             className="explore-btn"
@@ -31,6 +88,9 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
             Explore courses
           </button>
         </div>   {/* ✅ FIXED: Closed hero-left div */}
+=======
+        </div>
+>>>>>>> f7bcacd (My local changes)
 
         <div className="hero-right">
           <img
@@ -40,31 +100,12 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
         </div>
       </section>
 
-      {/* STATS */}
-      <section className="stats">
-        <div>
-          <h2>50K+</h2>
-          <p>Active Learners</p>
-        </div>
-        <div>
-          <h2>200+</h2>
-          <p>Video Courses</p>
-        </div>
-        <div>
-          <h2>50+</h2>
-          <p>Expert Tutors</p>
-        </div>
-        <div>
-          <h2>4.8★</h2>
-          <p>Average Rating</p>
-        </div>
-      </section>
-
-      {/* COURSES */}
+      {/* COURSES SECTION */}
       <section className="courses-section">
         <h2>Popular Courses</h2>
 
         <div className="courses-grid">
+<<<<<<< HEAD
           <div className="course-card">
             <h3>Web Development</h3>
             <img
@@ -91,6 +132,19 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
             />
             <p>Create beautiful designs</p>
           </div>
+=======
+          {courses.length === 0 ? (
+            <p>No Courses Available</p>
+          ) : (
+            courses.slice(0, 3).map((course) => (
+              <div className="course-card" key={course.course_id}>
+                <h3>{course.title}</h3>
+                <img src={course.thumbnail} alt="course" />
+                <p>{course.description}</p>
+              </div>
+            ))
+          )}
+>>>>>>> f7bcacd (My local changes)
         </div>
       </section>
 
@@ -98,12 +152,15 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
       <footer className="footer">
         <h1>Ready to Start Learning?</h1>
         <h2>"Learn Today, Lead Tomorrow"</h2>
+<<<<<<< HEAD
 
         <h3>About us</h3>
         <p>
           BlinkLearn is a platform dedicated to helping learners acquire new
           skills through short, engaging video lessons.
         </p>
+=======
+>>>>>>> f7bcacd (My local changes)
       </footer>
 
     </div>
