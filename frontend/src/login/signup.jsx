@@ -11,7 +11,7 @@ function Signup() {
     email: "",
     password: "",
     confirmPassword: "",
-    accountType: "Student",
+    accountType: "student", // ✅ default lowercase
   });
 
   const handleChange = (e) => {
@@ -34,12 +34,13 @@ function Signup() {
         fullname: formData.fullname,
         email: formData.email,
         password: formData.password,
-        accountType: formData.accountType,
+        accountType: formData.accountType, // ✅ student / tutor
       });
 
       alert(res.data.message);
       navigate("/login");
     } catch (err) {
+      console.log(err);
       alert("Registration failed");
     }
   };
@@ -51,21 +52,54 @@ function Signup() {
         <h3>Create your account</h3>
 
         <form onSubmit={handleSubmit}>
-          <input type="text" name="fullname" placeholder="Full Name" onChange={handleChange} required />
-          <input type="email" name="email" placeholder="Email Address" onChange={handleChange} required />
-          <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
-          <input type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} required />
+          <input
+            type="text"
+            name="fullname"
+            placeholder="Full Name"
+            onChange={handleChange}
+            required
+          />
 
-          <select name="accountType" onChange={handleChange}>
-            <option value="Student">Student</option>
-            <option value="Teacher">Teacher</option>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            onChange={handleChange}
+            required
+          />
+
+          <select name="accountType" onChange={handleChange} value={formData.accountType}>
+            <option value="student">Student</option>
+            <option value="tutor">Teacher</option>
           </select>
 
           <button type="submit">Create Account</button>
         </form>
 
         <p>
-          Already have account? <span onClick={() => navigate("/login")}>Sign in</span>
+          Already have account?{" "}
+          <span
+            style={{ color: "blue", cursor: "pointer" }}
+            onClick={() => navigate("/login")}
+          >
+            Sign in
+          </span>
         </p>
       </div>
     </div>

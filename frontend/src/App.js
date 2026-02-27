@@ -13,15 +13,13 @@ import ProtectedRoute from "./dashbord/ProtectedRoute";
 
 function App() {
   return (
-<<<<<<< HEAD
+
   
   <Router>
       {<Navbar />}
 
 =======
-    <Router>
-      <Navbar />
->>>>>>> f7bcacd (My local changes)
+  
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<Courses />} />

@@ -23,7 +23,18 @@ function Login() {
 
     try {
       const res = await axios.post("http://localhost:5000/login", data);
+
+      const user = res.data.user;
+
       alert(res.data.message);
+
+      // 🔥 ROLE BASED REDIRECT
+      if (user.role === "tutor") {
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/student-dashboard");
+      }
+
     } catch (err) {
       alert("Invalid email or password");
     }
@@ -36,14 +47,27 @@ function Login() {
         <h3>Sign In</h3>
 
         <form onSubmit={handleSubmit}>
-          <input type="email" name="email" placeholder="Email Address" onChange={handleChange} required />
-          <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            onChange={handleChange}
+            required
+          />
 
           <button type="submit">Login</button>
         </form>
 
         <p>
-          Don't have account? <span onClick={() => navigate("/")}>Sign up</span>
+          Don't have account?{" "}
+          <span onClick={() => navigate("/")}>Sign up</span>
         </p>
       </div>
     </div>
@@ -51,4 +75,3 @@ function Login() {
 }
 
 export default Login;
-

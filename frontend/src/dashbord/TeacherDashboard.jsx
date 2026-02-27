@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./TeacherDashboard.css"; // ✅ CSS import
+import "./TeacherDashboard.css";
 
 function TeacherDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -21,8 +21,8 @@ function TeacherDashboard() {
     e.preventDefault();
 
     try {
-      await axios.post("http://localhost:5000/courses", {
-        user_id: user.id,
+      await axios.post("http://localhost:5000/add-course", {
+        user_id: user.user_id,
         ...formData
       });
 
@@ -35,6 +35,7 @@ function TeacherDashboard() {
         level: "",
         thumbnail: ""
       });
+
     } catch (err) {
       console.error(err);
       alert("Course creation failed");
@@ -45,6 +46,7 @@ function TeacherDashboard() {
     <div className="dashboard-wrapper">
       <div className="dashboard-card">
         <h1>Teacher Dashboard</h1>
+
         <form onSubmit={handleSubmit}>
           <input
             type="text"
@@ -54,6 +56,7 @@ function TeacherDashboard() {
             onChange={handleChange}
             required
           />
+
           <textarea
             name="description"
             placeholder="Course Description"
@@ -61,6 +64,7 @@ function TeacherDashboard() {
             onChange={handleChange}
             required
           />
+
           <input
             type="number"
             name="price"
@@ -69,6 +73,7 @@ function TeacherDashboard() {
             onChange={handleChange}
             required
           />
+
           <input
             type="text"
             name="level"
@@ -77,6 +82,7 @@ function TeacherDashboard() {
             onChange={handleChange}
             required
           />
+
           <input
             type="text"
             name="thumbnail"
@@ -84,6 +90,7 @@ function TeacherDashboard() {
             value={formData.thumbnail}
             onChange={handleChange}
           />
+
           <button type="submit">Create Course</button>
         </form>
       </div>
