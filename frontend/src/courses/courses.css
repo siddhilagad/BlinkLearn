@@ -83,11 +83,12 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   position: relative;
 }
-
 .course-card img {
   width: 100%;
   height: 180px;
-  object-fit: cover;
+  object-fit: contain;   /* 🔥 FULL IMAGE visible */
+  background-color: #f2f2f2;
+  display: block;
 }
 
 .tag {

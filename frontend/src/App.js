@@ -1,57 +1,29 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Navbar from "./components/Navbar";
 import Home from "./home/home";
-import Courses from "./courses/courses";
 import Login from "./login/login";
 import Signup from "./login/signup";
+import Courses from "./courses/courses";
+
 import TeacherDashboard from "./dashbord/TeacherDashboard";
 import StudentDashboard from "./dashbord/StudentDashboard";
-import ProtectedRoute from "./dashbord/ProtectedRoute";
-
 
 function App() {
   return (
-
-  
-  <Router>
-      {<Navbar />}
-
-=======
-  
+    <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/courses" element={<Courses />} />
-
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/courses" element={<Courses />} />
 
-        <Route
-          path="/teacher-dashboard"
-          element={
-            <ProtectedRoute role="tutor">
-              <TeacherDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/student-dashboard"
-          element={
-            <ProtectedRoute role="student">
-              <StudentDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* DASHBOARD ROUTES */}
+        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
-
-
-
-

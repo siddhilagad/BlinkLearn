@@ -1,44 +1,63 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./TeacherDashboard.css";
+import { useNavigate } from "react-router-dom";
 
 function TeacherDashboard() {
-  const user = JSON.parse(localStorage.getItem("user"));
+
+  const navigate = useNavigate();   // 🔥 redirect साठी
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     price: "",
     level: "",
-    thumbnail: ""
+    thumbnail: null
   });
 
+  const user = { id: 1 }; // later replace with real logged user
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === "thumbnail") {
+      setFormData({
+        ...formData,
+        thumbnail: e.target.files[0]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      await axios.post("http://localhost:5000/add-course", {
-        user_id: user.user_id,
-        ...formData
+      const data = new FormData();
+
+      data.append("title", formData.title);
+      data.append("description", formData.description);
+      data.append("price", formData.price);
+      data.append("level", formData.level);
+      data.append("thumbnail", formData.thumbnail);
+      data.append("user_id", user.id);
+
+      await axios.post("http://localhost:5000/add-course", data, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
       });
 
-      alert("Course Created Successfully");
+      alert("Course Created Successfully ✅");
 
-      setFormData({
-        title: "",
-        description: "",
-        price: "",
-        level: "",
-        thumbnail: ""
-      });
+      // 🔥 Redirect to Courses Page
+      navigate("/courses", { replace: true });
 
     } catch (err) {
       console.error(err);
-      alert("Course creation failed");
+      alert("Course creation failed ❌");
     }
   };
 
@@ -48,6 +67,7 @@ function TeacherDashboard() {
         <h1>Teacher Dashboard</h1>
 
         <form onSubmit={handleSubmit}>
+
           <input
             type="text"
             name="title"
@@ -74,24 +94,27 @@ function TeacherDashboard() {
             required
           />
 
-          <input
-            type="text"
+          <select
             name="level"
-            placeholder="Level (Beginner/Intermediate/Advanced)"
             value={formData.level}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Level</option>
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+
+          <input
+            type="file"
+            name="thumbnail"
             onChange={handleChange}
             required
           />
 
-          <input
-            type="text"
-            name="thumbnail"
-            placeholder="Thumbnail URL"
-            value={formData.thumbnail}
-            onChange={handleChange}
-          />
-
           <button type="submit">Create Course</button>
+
         </form>
       </div>
     </div>

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./home.css";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";   // 👈 path adjust कर
+import "./home.css";
 
-function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
+function Home() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
 
@@ -22,39 +23,9 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
 
   return (
     <div className="home">
-      {/* NAVBAR */}
-      <nav className="navbar">
-        <div className="nav-left">
-          <div className="logo">
-            <div className="logo-icon">▶</div>
-            <h2>blinkLearn</h2>
-          </div>
-
-          <div className="search-bar">
-            <input type="text" placeholder="Search courses..." />
-          </div>
-        </div>
-
-        <div className="nav-right">
-          {!isLoggedIn ? (
-            <>
-              <button className="login-btn" onClick={() => setShowAuth(true)}>
-                Sign In
-              </button>
-              <button className="signup-btn" onClick={() => setShowAuth(true)}>
-                Login
-              </button>
-            </>
-          ) : (
-            <button
-              className="signup-btn"
-              onClick={() => setIsLoggedIn(false)}
-            >
-              Logout
-            </button>
-          )}
-        </div>
-      </nav>
+      
+      {/* ✅ Navbar Component */}
+      <Navbar />
 
       {/* HERO SECTION */}
       <section className="hero">
@@ -93,7 +64,12 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
           ) : (
             courses.slice(0, 3).map((course) => (
               <div className="course-card" key={course.course_id}>
-                <img src={course.thumbnail} alt={course.title} />
+                {course.thumbnail && (
+                  <img
+                    src={`http://localhost:5000/uploads/${course.thumbnail}`}
+                    alt={course.title}
+                  />
+                )}
                 <h3>{course.title}</h3>
                 <p>{course.description}</p>
               </div>
@@ -113,6 +89,7 @@ function Home({ setShowAuth, isLoggedIn, setIsLoggedIn }) {
           skills through short, engaging video lessons.
         </p>
       </footer>
+
     </div>
   );
 }

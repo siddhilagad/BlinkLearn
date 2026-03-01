@@ -4,6 +4,7 @@ import "./courses.css";
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCourses();
@@ -13,8 +14,10 @@ const Courses = () => {
     try {
       const res = await axios.get("http://localhost:5000/courses");
       setCourses(res.data);
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching courses:", err);
+      setLoading(false);
     }
   };
 
@@ -30,12 +33,25 @@ const Courses = () => {
       {/* COURSES GRID */}
       <div className="courses-grid">
 
-        {courses.length === 0 ? (
+        {loading ? (
+          <p>Loading courses...</p>
+        ) : courses.length === 0 ? (
           <p>No courses available</p>
         ) : (
           courses.map((course) => (
             <div className="course-card" key={course.course_id}>
-              <img src={course.thumbnail} alt="course" />
+              
+              <img
+                src={
+                  course.thumbnail &&
+                  (course.thumbnail.endsWith(".jpeg") ||
+                   course.thumbnail.endsWith(".jpg") ||
+                   course.thumbnail.endsWith(".png"))
+                    ? `http://localhost:5000/uploads/${course.thumbnail}`
+                    : "https://via.placeholder.com/300x200"
+                }
+                alt="course"
+              />
 
               <span className="tag">{course.level}</span>
 
