@@ -6,8 +6,8 @@ import Login from "./login/login";
 import Signup from "./login/signup";
 import Courses from "./courses/courses";
 
-import TeacherDashboard from "./dashbord/TeacherDashboard";
-import StudentDashboard from "./dashbord/StudentDashboard";
+import TeacherDashboard from "./dashbord/teacher/TeacherDashboard";
+import StudentDashboard from "./dashbord/student/StudentDashboard";
 
 function App() {
   return (
