@@ -25,8 +25,11 @@ export default function ProfileMenu() {
     window.addEventListener("blinklearn:userChanged", onUserChanged);
 
     const handleClickOutside = (e) => {
-      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
+      if (boxRef.current && !boxRef.current.contains(e.target)) {
+        setOpen(false);
+      }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
@@ -41,7 +44,6 @@ export default function ProfileMenu() {
     navigate("/login");
   };
 
-  // If not logged in -> show nothing OR show small login link
   if (!user) return null;
 
   const isTutor = user.role === "tutor";
@@ -49,20 +51,24 @@ export default function ProfileMenu() {
 
   return (
     <div className="profileWrap" ref={boxRef}>
-      <button className="profileBtn" onClick={() => setOpen((v) => !v)}>
+      {/* Profile Button */}
+      <button className="profileBtn" onClick={() => setOpen(!open)}>
         <FaUserCircle className="profileIcon" />
+
         <div className="profileText">
           <div className="profileName">{user.name}</div>
           <div className="profileRole">{isTutor ? "Tutor" : "Student"}</div>
         </div>
       </button>
 
+      {/* Dropdown */}
       {open && (
         <div className="profileDropdown">
           <div className="profileTop">
             <div className="profileTopName">{user.name}</div>
             <div className="profileTopEmail">{user.email}</div>
 
+            {/* Stats */}
             <div className="profileStats">
               <div className="stat">
                 <div className="statNum">{user.totalCourses ?? 0}</div>
@@ -73,8 +79,9 @@ export default function ProfileMenu() {
                 <>
                   <div className="stat">
                     <div className="statNum">{user.totalStudents ?? 0}</div>
-                    <div className="statLbl">Total Students</div>
+                    <div className="statLbl">Students</div>
                   </div>
+
                   <div className="stat">
                     <div className="statNum">{user.rating ?? 0}</div>
                     <div className="statLbl">Rating</div>
@@ -93,22 +100,41 @@ export default function ProfileMenu() {
             )}
           </div>
 
+          {/* Links */}
           <div className="profileLinks">
             {isTutor ? (
               <>
-                <Link to="/tutor/dashboard" onClick={() => setOpen(false)}>Tutor Dashboard</Link>
-                <Link to="/tutor/my-courses" onClick={() => setOpen(false)}>My Courses</Link>
-                <Link to="/tutor/profile" onClick={() => setOpen(false)}>Edit Profile</Link>
+                <Link to="/teacher-dashboard" onClick={() => setOpen(false)}>
+                  Tutor Dashboard
+                </Link>
+
+                <Link to="/my-courses" onClick={() => setOpen(false)}>
+                  My Courses
+                </Link>
+
+                <Link to="/edit-profile" onClick={() => setOpen(false)}>
+                  Edit Profile
+                </Link>
               </>
             ) : (
               <>
-                <Link to="/student/dashboard" onClick={() => setOpen(false)}>Student Dashboard</Link>
-                <Link to="/my-learning" onClick={() => setOpen(false)}>My Learning</Link>
-                <Link to="/student/profile" onClick={() => setOpen(false)}>Edit Profile</Link>
+                <Link to="/student-dashboard" onClick={() => setOpen(false)}>
+                  Student Dashboard
+                </Link>
+
+                <Link to="/my-courses" onClick={() => setOpen(false)}>
+                  My Learning
+                </Link>
+
+                <Link to="/edit-profile" onClick={() => setOpen(false)}>
+                  Edit Profile
+                </Link>
               </>
             )}
 
-            <button className="logoutBtn" onClick={logout}>Logout</button>
+            <button className="logoutBtn" onClick={logout}>
+              Logout
+            </button>
           </div>
         </div>
       )}
