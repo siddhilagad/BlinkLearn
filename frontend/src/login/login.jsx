@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import "./login.css";
 import axios from "axios";
+<<<<<<< HEAD
 import { useNavigate, Link } from "react-router-dom";
+=======
+import { useNavigate } from "react-router-dom";
+import "./login.css";
+const Login = () => {
+>>>>>>> 5e7b663c (my local changes before pulling)
 
-function Login() {
   const navigate = useNavigate();
 
   const [data, setData] = useState({
@@ -11,10 +15,14 @@ function Login() {
     password: "",
   });
 
+<<<<<<< HEAD
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+=======
+  // handle input
+>>>>>>> 5e7b663c (my local changes before pulling)
   const handleChange = (e) => {
     setData((prev) => ({
       ...prev,
@@ -23,37 +31,97 @@ function Login() {
     setErrorMsg("");
   };
 
+  // check teacher courses
+  const checkTeacherCourses = async (userId) => {
+
+  try {
+
+    const res = await axios.get(
+      `http://localhost:5000/teacher-courses/${userId}`
+    );
+
+    if (res.data.length > 0) {
+      navigate("/my-courses");   // ✅ teacher courses page
+    } else {
+      navigate("/teacher-dashboard");   // ✅ add course page
+    }
+
+  } catch (err) {
+    console.log(err);
+  }
+
+};
+
+  // login
   const handleSubmit = async (e) => {
+
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
 
     try {
+<<<<<<< HEAD
       const res = await axios.post(
         "http://localhost:5000/api/auth/login",
+=======
+
+      const res = await axios.post(
+        "http://localhost:5000/login",
+>>>>>>> 5e7b663c (my local changes before pulling)
         data
       );
 
       const user = res.data.user;
 
+<<<<<<< HEAD
       localStorage.setItem("blinklearn_user", JSON.stringify(user));
       window.dispatchEvent(new Event("blinklearn:userChanged"));
 
       if (user.role === "teacher") {
         navigate("/teacher-dashboard");
       } else {
+=======
+      console.log("FULL USER OBJECT:", user);
+      console.log("ROLE VALUE:", user.role);
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      const role = user.role?.trim().toLowerCase();
+
+      if (role === "tutor") {
+
+        checkTeacherCourses(user.user_id);
+
+      } else if (role === "student") {
+
+>>>>>>> 5e7b663c (my local changes before pulling)
         navigate("/student-dashboard");
+
+      } else {
+
+        alert("Role not recognized");
+        console.log("Unknown role:", role);
+
       }
 
     } catch (err) {
+<<<<<<< HEAD
       console.error("Login error:", err);
       setErrorMsg(err.response?.data?.message || "Invalid email or password");
     } finally {
       setLoading(false);
+=======
+
+      alert("Invalid email or password");
+      console.log(err);
+
+>>>>>>> 5e7b663c (my local changes before pulling)
     }
+
   };
 
   return (
+<<<<<<< HEAD
     <div className="login-page">
       <div className="login-wrapper">
 
@@ -168,8 +236,43 @@ function Login() {
           </div>
         </div>
       </div>
+=======
+
+    <div className="login-page">
+
+      <h2>Login</h2>
+
+      <form onSubmit={handleSubmit}>
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter Email"
+          value={data.email}
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Enter Password"
+          value={data.password}
+          onChange={handleChange}
+          required
+        />
+
+        <button type="submit">
+          Login
+        </button>
+
+      </form>
+
+>>>>>>> 5e7b663c (my local changes before pulling)
     </div>
+
   );
-}
+
+};
 
 export default Login;
