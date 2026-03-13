@@ -18,7 +18,8 @@ function Navbar() {
     };
 
     window.addEventListener("blinklearn:userChanged", updateUser);
-    return () => window.removeEventListener("blinklearn:userChanged", updateUser);
+    return () =>
+      window.removeEventListener("blinklearn:userChanged", updateUser);
   }, []);
 
   useEffect(() => {
@@ -27,20 +28,16 @@ function Navbar() {
       setWishlistCount(wishlist.length);
     };
 
-    updateCount(); // initial
+    updateCount();
     window.addEventListener("wishlistUpdated", updateCount);
     return () => window.removeEventListener("wishlistUpdated", updateCount);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("blinklearn_user");
-    window.dispatchEvent(new Event("blinklearn:userChanged"));
-  };
-
   return (
     <nav className="navbar">
+      
+      {/* LEFT SIDE */}
       <div className="nav-left">
-        {user && <ProfileMenu />}
         <Link to="/" className="logo-link">
           <div className="logo">
             <div className="logo-icon">▶</div>
@@ -49,17 +46,21 @@ function Navbar() {
         </Link>
       </div>
 
+      {/* CENTER LINKS */}
       <ul className="nav-links">
         <li>
           <Link to="/courses">Courses</Link>
         </li>
-        {/* Add more links later: About, Contact, etc. */}
       </ul>
 
+      {/* RIGHT SIDE */}
       <div className="nav-right">
+
         <Link to="/wishlist" className="icon-btn wishlist-icon">
           <FaHeart />
-          {wishlistCount > 0 && <span className="wishlist-count">{wishlistCount}</span>}
+          {wishlistCount > 0 && (
+            <span className="wishlist-count">{wishlistCount}</span>
+          )}
         </Link>
 
         <Link to="/cart" className="icon-btn">
@@ -71,15 +72,15 @@ function Navbar() {
             <Link to="/login">
               <button className="nav-btn">Login</button>
             </Link>
+
             <Link to="/signup">
               <button className="nav-btn signup-btn">Signup</button>
             </Link>
           </>
         ) : (
-          <button className="nav-btn logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
+          <ProfileMenu />
         )}
+
       </div>
     </nav>
   );

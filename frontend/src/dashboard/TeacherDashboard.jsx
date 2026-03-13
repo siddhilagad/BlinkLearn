@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./TeacherDashboard.css";
 
 function TeacherDashboard() {
@@ -8,10 +8,21 @@ function TeacherDashboard() {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
-    if (storedUser) {
-      setUser(storedUser);
+
+    if (!storedUser) {
+      navigate("/login");
+      return;
     }
-  }, []);
+
+    const userRole = storedUser.role?.toLowerCase().trim();
+
+    if (userRole !== "teacher") {
+      navigate("/student-dashboard");
+      return;
+    }
+
+    setUser(storedUser);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("blinklearn_user");
@@ -22,11 +33,15 @@ function TeacherDashboard() {
   return (
     <div className="teacher-dashboard-page">
       <div className="teacher-dashboard-wrapper">
-        {/* Header Card */}
+        {/* Logo */}
+        <Link to="/" className="dashboard-logo-link">
+          <div className="dashboard-logo">▶ BlinkLearn</div>
+        </Link>
+
         <div className="teacher-dashboard-hero">
           <div>
-            <p className="dashboard-label">Tutor Panel</p>
-            <h1>Welcome back, {user?.name || "Tutor"} 👋</h1>
+            <p className="dashboard-label">Teacher Panel</p>
+            <h1>Welcome back, {user?.name || "Teacher"} 👋</h1>
             <p className="dashboard-subtitle">
               Manage your profile, courses, and students from one place.
             </p>
@@ -34,49 +49,46 @@ function TeacherDashboard() {
 
           <button
             className="dashboard-main-btn"
-            onClick={() => navigate("/edit-profile")}
+            onClick={() => navigate("/add-course")}
           >
-            Edit Profile
+            Add Courses
           </button>
         </div>
 
-        {/* Profile Card */}
         <div className="teacher-profile-card">
           <div className="teacher-avatar">
             {user?.name ? user.name.charAt(0).toUpperCase() : "T"}
           </div>
 
           <div className="teacher-profile-info">
-            <h2>{user?.name || "Tutor Name"}</h2>
-            <p>{user?.email || "tutor@gmail.com"}</p>
-            <span className="teacher-role-badge">Tutor</span>
+            <h2>{user?.name || "Teacher Name"}</h2>
+            <p>{user?.email || "teacher@gmail.com"}</p>
+            <span className="teacher-role-badge">Teacher</span>
           </div>
         </div>
 
-        {/* Stats */}
         <div className="teacher-stats-grid">
           <div className="teacher-stat-card">
-            <h3>{user?.totalCourses || 6}</h3>
+            <h3>{user?.totalCourses || 0}</h3>
             <p>Total Courses</p>
           </div>
 
           <div className="teacher-stat-card">
-            <h3>{user?.totalStudents || 120}</h3>
+            <h3>{user?.totalStudents || 0}</h3>
             <p>Total Students</p>
           </div>
 
           <div className="teacher-stat-card">
-            <h3>{user?.rating || 4.7}</h3>
+            <h3>{user?.rating || 0}</h3>
             <p>Rating</p>
           </div>
 
           <div className="teacher-stat-card">
-            <h3>{user?.specialization || "Web Development"}</h3>
+            <h3>{user?.specialization || "Not Added"}</h3>
             <p>Specialization</p>
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="teacher-section-card">
           <h2>Quick Actions</h2>
 
@@ -88,8 +100,14 @@ function TeacherDashboard() {
             </div>
 
             <div className="teacher-action-box">
+              <h3>Add Courses</h3>
+              <p>Create and publish a new course for your students.</p>
+              <button onClick={() => navigate("/add-course")}>Add</button>
+            </div>
+
+            <div className="teacher-action-box">
               <h3>Edit Profile</h3>
-              <p>Update your tutor details and personal information.</p>
+              <p>Update your teacher details and personal information.</p>
               <button onClick={() => navigate("/edit-profile")}>Edit</button>
             </div>
 
@@ -103,39 +121,38 @@ function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Overview */}
         <div className="teacher-section-card">
           <h2>Profile Overview</h2>
 
           <div className="teacher-overview-grid">
             <div className="teacher-overview-item">
               <span>Full Name</span>
-              <strong>{user?.name || "Tutor Name"}</strong>
+              <strong>{user?.name || "Teacher Name"}</strong>
             </div>
 
             <div className="teacher-overview-item">
               <span>Email</span>
-              <strong>{user?.email || "tutor@gmail.com"}</strong>
+              <strong>{user?.email || "teacher@gmail.com"}</strong>
             </div>
 
             <div className="teacher-overview-item">
               <span>Role</span>
-              <strong>{user?.role || "tutor"}</strong>
+              <strong>Teacher</strong>
             </div>
 
             <div className="teacher-overview-item">
               <span>Specialization</span>
-              <strong>{user?.specialization || "Web Development"}</strong>
+              <strong>{user?.specialization || "Not Added"}</strong>
             </div>
 
             <div className="teacher-overview-item">
               <span>Total Courses</span>
-              <strong>{user?.totalCourses || 6}</strong>
+              <strong>{user?.totalCourses || 0}</strong>
             </div>
 
             <div className="teacher-overview-item">
               <span>Total Students</span>
-              <strong>{user?.totalStudents || 120}</strong>
+              <strong>{user?.totalStudents || 0}</strong>
             </div>
           </div>
         </div>

@@ -7,9 +7,24 @@ import "./home.css";
 function Home() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     fetchCourses();
+
+    const storedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
+    setUser(storedUser);
+
+    const updateUser = () => {
+      const updatedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
+      setUser(updatedUser);
+    };
+
+    window.addEventListener("blinklearn:userChanged", updateUser);
+
+    return () => {
+      window.removeEventListener("blinklearn:userChanged", updateUser);
+    };
   }, []);
 
   const fetchCourses = async () => {
@@ -44,12 +59,14 @@ function Home() {
               Explore Courses
             </button>
 
-            <button
-              className="secondary-btn"
-              onClick={() => navigate("/signup")}
-            >
-              Get Started
-            </button>
+            {!user && (
+              <button
+                className="secondary-btn"
+                onClick={() => navigate("/signup")}
+              >
+                Get Started
+              </button>
+            )}
           </div>
 
           <div className="hero-features">

@@ -164,3 +164,34 @@
   display:block;
   margin-top:5px;
 }
+
+
+
+
+
+
+
+
+.dashboard-logo-link {
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.dashboard-logo {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.dashboard-logo:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}

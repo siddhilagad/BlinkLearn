@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./login.css";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const navigate = useNavigate();
@@ -30,7 +30,6 @@ function Login() {
 
     try {
       const res = await axios.post(
-        // `${process.env.REACT_APP_BACKEND_URL}/login`,
         "http://localhost:5000/api/auth/login",
         data
       );
@@ -40,11 +39,12 @@ function Login() {
       localStorage.setItem("blinklearn_user", JSON.stringify(user));
       window.dispatchEvent(new Event("blinklearn:userChanged"));
 
-      if (user.role === "tutor") {
+      if (user.role === "teacher") {
         navigate("/teacher-dashboard");
       } else {
         navigate("/student-dashboard");
       }
+
     } catch (err) {
       console.error("Login error:", err);
       setErrorMsg(err.response?.data?.message || "Invalid email or password");
@@ -56,10 +56,17 @@ function Login() {
   return (
     <div className="login-page">
       <div className="login-wrapper">
+
         {/* Left Side */}
         <div className="login-left">
-          <div className="brand-badge">🎓 BlinkLearn</div>
+
+          {/* CLICKABLE LOGO */}
+          <Link to="/" className="logo-link">
+            <div className="brand-badge">🎓 BlinkLearn</div>
+          </Link>
+
           <h1>Welcome Back to BlinkLearn</h1>
+
           <p>
             Learn smarter, teach better, and manage your courses with a modern
             learning platform built for students and tutors.
@@ -95,6 +102,7 @@ function Login() {
         {/* Right Side */}
         <div className="login-right">
           <div className="login-card">
+
             <div className="login-header">
               <h2>Sign In</h2>
               <p>Enter your credentials to access your account</p>
@@ -103,6 +111,7 @@ function Login() {
             {errorMsg && <div className="error-box">{errorMsg}</div>}
 
             <form onSubmit={handleSubmit} className="login-form">
+
               <div className="input-group">
                 <label>Email Address</label>
                 <input
@@ -126,6 +135,7 @@ function Login() {
                     onChange={handleChange}
                     required
                   />
+
                   <button
                     type="button"
                     className="toggle-password"
@@ -147,12 +157,14 @@ function Login() {
               <button type="submit" className="login-btn" disabled={loading}>
                 {loading ? "Signing In..." : "Login"}
               </button>
+
             </form>
 
             <p className="signup-text">
               Don’t have an account?{" "}
               <span onClick={() => navigate("/signup")}>Sign up</span>
             </p>
+
           </div>
         </div>
       </div>

@@ -56,17 +56,24 @@
   gap: 16px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 15px;
+  min-width: 160px;
 }
 
 .primary-btn {
   background: white;
   color: #6d28d9;
-  padding: 12px 24px;
   border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s;
 }
 
 .primary-btn:hover {
@@ -77,15 +84,11 @@
   background: transparent;
   border: 1px solid white;
   color: white;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
 }
 
 .secondary-btn:hover {
   background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
 }
 
 .hero-features {
@@ -526,5 +529,11 @@
 
   .company-strip-right span {
     font-size: 20px;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
+    max-width: 250px;
   }
 }
