@@ -16,10 +16,10 @@ function TeacherDashboard() {
 
     const userRole = storedUser.role?.toLowerCase().trim();
 
-    if (userRole !== "teacher") {
-      navigate("/student-dashboard");
-      return;
-    }
+if (userRole !== "teacher") {
+  navigate("/student-dashboard");
+  return;
+} 
 
     setUser(storedUser);
   }, [navigate]);

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import "./signup.css";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "../api/api"; // api.js मधल्या function call
 
 function Signup() {
   const navigate = useNavigate();
 
+  // ====== State ======
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -20,6 +21,7 @@ function Signup() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  // ====== Handle Input Change ======
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -29,6 +31,7 @@ function Signup() {
     setSuccessMsg("");
   };
 
+  // ====== Handle Form Submit ======
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -47,25 +50,22 @@ function Signup() {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        // `${process.env.REACT_APP_BACKEND_URL}/register`,
-        "http://localhost:5000/api/auth/register",
-        {
-          fullname: formData.fullname,
-          email: formData.email,
-          password: formData.password,
-          accountType: formData.accountType,
-        }
-      );
+      // ===== API Call using api.js function =====
+      const res = await registerUser({
+        fullname: formData.fullname.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        accountType: formData.accountType.toLowerCase(),
+      });
 
-      setSuccessMsg(res.data.message || "Account created successfully");
+      setSuccessMsg(res.message || "Account created successfully");
 
       setTimeout(() => {
         navigate("/login");
       }, 1200);
     } catch (err) {
       console.error("Signup error:", err);
-      setErrorMsg(err.response?.data?.message || "Registration failed");
+      setErrorMsg(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ function Signup() {
   return (
     <div className="signup-page">
       <div className="signup-wrapper">
-        {/* Left Side */}
+        {/* ===== Left Side (keep same) ===== */}
         <div className="signup-left">
           <div className="brand-badge">✨ BlinkLearn</div>
           <h1>Create Your Learning Journey</h1>
@@ -110,7 +110,7 @@ function Signup() {
           </div>
         </div>
 
-        {/* Right Side */}
+        {/* ===== Right Side ===== */}
         <div className="signup-right">
           <div className="signup-card">
             <div className="signup-header">
@@ -220,5 +220,4 @@ function Signup() {
   );
 }
 
-export default Signup; 
-// useNaviagte , Link
+export default Signup;

@@ -1,0 +1,104 @@
+/* TeacherCourses.css */
+
+.teacher-courses-page {
+  max-width: 1000px;
+  margin: 50px auto;
+  padding: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.teacher-courses-page h2 {
+  text-align: center;
+  color: #4f46e5;
+  margin-bottom: 25px;
+}
+
+.error-box {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.course-card {
+  background-color: #f3f4f6;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.course-card img.course-thumbnail {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.course-card h3 {
+  margin: 5px 0;
+  color: #111827;
+}
+
+.course-card p {
+  font-size: 0.9rem;
+  color: #374151;
+  flex-grow: 1;
+}
+
+.course-meta {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.course-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.course-actions button {
+  padding: 6px 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.course-actions button:first-child {
+  background-color: #fbbf24;
+  color: #fff;
+}
+
+.course-actions button:first-child:hover {
+  background-color: #f59e0b;
+}
+
+.course-actions button:last-child {
+  background-color: #ef4444;
+  color: #fff;
+}
+
+.course-actions button:last-child:hover {
+  background-color: #dc2626;
+}
+
+.add-link {
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
