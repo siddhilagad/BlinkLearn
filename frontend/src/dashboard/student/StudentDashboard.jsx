@@ -9,6 +9,13 @@ function StudentDashboard() {
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
     setUser(storedUser || null);
+
+    // ✅ हे 4 lines add कर
+    const handleUserChange = () => {
+      setUser(JSON.parse(localStorage.getItem("blinklearn_user")));
+    };
+    window.addEventListener("blinklearn:userChanged", handleUserChange);
+    return () => window.removeEventListener("blinklearn:userChanged", handleUserChange);
   }, []);
 
   const handleLogout = () => {
@@ -42,7 +49,18 @@ function StudentDashboard() {
 
         {/* Profile Card */}
         <div className="student-profile-card">
-          <div className="student-avatar">{user?.name?.[0]?.toUpperCase() || "S"}</div>
+<div className="student-avatar">
+  {user?.profilePhoto ? (
+    <img src={user.profilePhoto} alt="profile" style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      borderRadius: "50%"
+    }} />
+  ) : (
+    user?.name?.[0]?.toUpperCase() || "S"
+  )}
+</div>
           <div className="student-info">
             <h2>{user?.name || "Student Name"}</h2>
             <p>{user?.email || "student@email.com"}</p>
@@ -118,11 +136,13 @@ function StudentDashboard() {
             <div className="overview-item">
               <span>Courses Enrolled</span>
               <strong>{stats.totalCourses}</strong>
+              
             </div>
           </div>
         </div>
       </div>
     </div>
+    
   );
 }
 

@@ -25,32 +25,31 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMsg("");
+  e.preventDefault();
+  setLoading(true);
+  setErrorMsg("");
 
-    try {
-      // API call
-      const res = await loginUser(data.email, data.password);
-const user = res.user;
+  try {
+    const res = await loginUser(data.email, data.password); // ✅ API call
+    const user = res.user;                                   // ✅ user घ्या
 
-      localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("blinklearn_user", JSON.stringify(user)); // ✅ save करा
 
-      const role = user.role?.toLowerCase().trim();
+    const role = user.role?.toLowerCase().trim();
 
-      if (role === "teacher") {
-        navigate("/teacher-dashboard");
-      } else if (role === "student") {
-        navigate("/student-dashboard");
-      } else {
-        alert("Role not recognized");
-      }
-    } catch (err) {
-      setErrorMsg(err.message || "Login failed");
-    } finally {
-      setLoading(false);
+    if (role === "teacher") {
+      navigate("/teacher-dashboard");
+    } else if (role === "student") {
+      navigate("/student-dashboard");
+    } else {
+      alert("Role not recognized");
     }
-  };
+  } catch (err) {
+    setErrorMsg(err.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="login-page">

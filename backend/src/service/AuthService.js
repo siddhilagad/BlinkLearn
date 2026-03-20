@@ -50,12 +50,13 @@ class AuthService {
         throw new Error('Invalid email or password');
       }
 
+      
       return {
-        id: user.id,
-        name: user.fullname,
-        email: user.email,
-        role: user.role,
-      };
+  id: user.user_id,    // ✅ user_id
+  name: user.fullname, // ✅
+  email: user.email,   // ✅
+  role: user.role,     // ✅
+};
     } catch (err) {
       throw err;
     }

@@ -1,150 +1,249 @@
-* {
-  box-sizing: border-box;
-}
-
-/* PAGE BACKGROUND */
+/* ===========================
+   EditProfile.css
+   =========================== */
 
 .edit-profile-page {
   min-height: 100vh;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
   display: flex;
-  justify-content: center;
   align-items: center;
-
-  background: linear-gradient(
-    135deg,
-    #3b82f6 0%,
-    #8b5cf6 50%,
-    #ec4899 100%
-  );
-
-  padding: 30px;
-  font-family: "Segoe UI", sans-serif;
+  justify-content: center;
+  padding: 40px 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* CARD */
-
+/* Card */
 .edit-profile-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(79, 70, 229, 0.12);
+  padding: 44px 40px;
   width: 100%;
   max-width: 520px;
-
-  background: white;
-
-  border-radius: 20px;
-
-  padding: 40px;
-
-  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
 }
 
-.edit-profile-card h1 {
+/* Header */
+.edit-profile-header {
   text-align: center;
-  font-size: 32px;
-  margin-bottom: 6px;
+  margin-bottom: 28px;
+}
+
+.role-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 5px 18px;
+  border-radius: 50px;
+  margin-bottom: 14px;
+}
+
+.role-badge.teacher {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+}
+
+.role-badge.student {
+  background: linear-gradient(135deg, #059669, #0891b2);
+  color: #fff;
+}
+
+.edit-profile-header h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin: 0 0 6px 0;
 }
 
 .edit-subtitle {
-  text-align: center;
-  color: gray;
-  margin-bottom: 30px;
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  text-transform: capitalize;
 }
 
-/* FORM */
+/* ── Profile Photo Section ── */
+.photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
 
+.photo-wrapper {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e0e7ff;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.15);
+}
+
+.photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.photo-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.photo-upload input[type="file"] {
+  display: none;
+}
+
+.photo-upload-btn {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #ede9fe;
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1.5px dashed #a5b4fc;
+  transition: background 0.2s;
+}
+
+.photo-upload-btn:hover {
+  background: #ddd6fe;
+}
+
+.photo-file-name {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Section Label */
+.form-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #a5b4fc;
+  margin: 20px 0 12px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e0e7ff;
+}
+
+/* Form Group */
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 18px;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .form-group label {
-  margin-bottom: 6px;
-  font-size: 14px;
-  color: #444;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.3px;
 }
 
 .form-group input {
-  padding: 12px 14px;
-
+  padding: 11px 14px;
+  border: 1.5px solid #e5e7eb;
   border-radius: 10px;
-
-  border: 1px solid #ddd;
-
-  font-size: 14px;
-
+  font-size: 15px;
+  color: #111827;
+  background: #f9fafb;
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group input:focus {
-  border-color: #8b5cf6;
+  border-color: #4f46e5;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
-/* BUTTON CONTAINER */
+.form-group input::placeholder {
+  color: #9ca3af;
+}
 
+/* Buttons */
 .form-buttons {
   display: flex;
-  justify-content: space-between;
-  margin-top: 25px;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 28px;
 }
 
-/* CANCEL BUTTON */
-
 .cancel-btn {
-  border: none;
-
-  background: linear-gradient(
-    135deg,
-    #ef4444,
-    #dc2626
-  );
-
-  color: white;
-
-  padding: 12px 20px;
-
+  padding: 11px 28px;
+  background: transparent;
+  border: 1.5px solid #d1d5db;
   border-radius: 10px;
-
-  cursor: pointer;
-
+  color: #6b7280;
+  font-size: 15px;
   font-weight: 600;
-
-  transition: 0.2s;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
 }
 
 .cancel-btn:hover {
-  background: linear-gradient(
-    135deg,
-    #dc2626,
-    #b91c1c
-  );
-
-  transform: translateY(-1px);
+  background: #f3f4f6;
+  color: #374151;
 }
 
-/* SAVE BUTTON */
-
 .save-btn {
+  padding: 11px 32px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
   border: none;
-
-  background: linear-gradient(
-    135deg,
-    #4f46e5,
-    #a855f7
-  );
-
-  color: white;
-
-  padding: 12px 20px;
-
   border-radius: 10px;
-
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-
-  font-weight: 600;
-
-  transition: 0.2s;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: opacity 0.2s, transform 0.15s;
 }
 
 .save-btn:hover {
   opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+}
+
+.save-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+  .edit-profile-card {
+    padding: 28px 18px;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .save-btn {
+    width: 100%;
+    text-align: center;
+  }
 }

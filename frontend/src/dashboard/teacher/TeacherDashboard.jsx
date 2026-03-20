@@ -16,12 +16,19 @@ function TeacherDashboard() {
 
     const userRole = storedUser.role?.toLowerCase().trim();
 
-if (userRole !== "teacher") {
-  navigate("/student-dashboard");
-  return;
-} 
+    if (userRole !== "teacher") {
+      navigate("/student-dashboard");
+      return;
+    }
 
     setUser(storedUser);
+
+    // ✅ Event listener — EditProfile save केल्यावर dashboard update होतो
+    const handleUserChange = () => {
+      setUser(JSON.parse(localStorage.getItem("blinklearn_user")));
+    };
+    window.addEventListener("blinklearn:userChanged", handleUserChange);
+    return () => window.removeEventListener("blinklearn:userChanged", handleUserChange);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -55,9 +62,23 @@ if (userRole !== "teacher") {
           </button>
         </div>
 
+        {/* ✅ Profile Card with Photo */}
         <div className="teacher-profile-card">
           <div className="teacher-avatar">
-            {user?.name ? user.name.charAt(0).toUpperCase() : "T"}
+            {user?.profilePhoto ? (
+              <img
+                src={user.profilePhoto}
+                alt="profile"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                }}
+              />
+            ) : (
+              user?.name ? user.name.charAt(0).toUpperCase() : "T"
+            )}
           </div>
 
           <div className="teacher-profile-info">
