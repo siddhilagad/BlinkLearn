@@ -15,6 +15,10 @@ import MyCourses from "./dashboard/MyCourses";
 import EditProfile from "./dashboard/EditProfile";
 import Wishlist from "./components/wishlist";
 
+// Forgot Password
+import ForgotPassword from "./login/forgotpassword";
+import ResetPassword from "./login/resetpassword";
+
 function App() {
   return (
     <Router>
@@ -33,12 +37,15 @@ function App() {
         <Route path="/add-course" element={<AddCourse />} />
         <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
         <Route path="/teacher-courses" element={<TeacherCourses />} />
-        <Route path="/my-courses" element={<TeacherCourses />} />
 
         {/* STUDENT */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/my-courses" element={<MyCourses />} />
         <Route path="/edit-profile" element={<EditProfile />} />
+
+        {/* PASSWORD */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       </Routes>
     </Router>

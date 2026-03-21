@@ -9,7 +9,13 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    await authService.registerUser({ fullname, email, password, accountType });
+  
+    await authService.registerUser({
+      name: fullname,
+      email: email,
+      password: password,
+      account_type: accountType
+    });
 
     res.status(201).json({ message: 'Registration successful' });
   } catch (error) {
