@@ -112,6 +112,28 @@ app.get("/courses", (req, res) => {
   });
 });
 
+
+// ================= GET SINGLE COURSE =================
+app.get("/course/:courseId", (req, res) => {
+  const { courseId } = req.params;
+  const sql = `
+    SELECT c.*, u.name as tutor_name, u.email as tutor_email
+    FROM courses c
+    JOIN users u ON c.tutor_id = u.user_id
+    WHERE c.course_id = ?
+  `;
+  db.query(sql, [courseId], (err, result) => {
+    if (err) {
+      console.log("Fetch course error:", err);
+      return res.status(500).json({ message: "Error fetching course" });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+    res.json(result[0]);
+  });
+});
+
 // ================= GET TEACHER COURSES =================
 app.get("/teacher-courses/:id", (req, res) => {
   const teacherId = req.params.id; // rename tutorId → teacherId

@@ -5,8 +5,7 @@ import "./TeacherCourses.css";
 
 const TeacherCourses = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
-
+  const user = JSON.parse(localStorage.getItem("blinklearn_user")); // ✅ updated key
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -16,7 +15,6 @@ const TeacherCourses = () => {
       navigate("/login");
       return;
     }
-
     const fetchCourses = async () => {
       try {
         const res = await axios.get(
@@ -30,13 +28,13 @@ const TeacherCourses = () => {
         setLoading(false);
       }
     };
-
     fetchCourses();
-  }, [user, navigate]);
+  }, [navigate]);
 
-  const handleDelete = async (courseId) => {
+  // ✅ e.stopPropagation() add केला — card click trigger होणार नाही
+  const handleDelete = async (e, courseId) => {
+    e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this course?")) return;
-
     try {
       await axios.delete(
         `http://localhost:5000/delete-course/${courseId}/${user.user_id}`
@@ -48,7 +46,9 @@ const TeacherCourses = () => {
     }
   };
 
-  const handleEdit = (courseId) => {
+  // ✅ e.stopPropagation() add केला
+  const handleEdit = (e, courseId) => {
+    e.stopPropagation();
     navigate(`/edit-course/${courseId}`);
   };
 
@@ -56,15 +56,28 @@ const TeacherCourses = () => {
     <div className="teacher-courses-page">
       <h2>Your Courses</h2>
       {errorMsg && <div className="error-box">{errorMsg}</div>}
-
       {loading ? (
         <p>Loading courses...</p>
       ) : courses.length === 0 ? (
-        <p>You have not added any courses yet. <span onClick={() => navigate("/add-course")} className="add-link">Add a new course</span>.</p>
+        <p>
+          You have not added any courses yet.{" "}
+          <span
+            onClick={() => navigate("/add-course")}
+            className="add-link"
+          >
+            Add a new course
+          </span>
+          .
+        </p>
       ) : (
         <div className="courses-grid">
           {courses.map((course) => (
-            <div className="course-card" key={course.course_id}>
+            <div
+              className="course-card"
+              key={course.course_id}
+              onClick={() => navigate(`/course/${course.course_id}`)} // ✅ clickable
+              style={{ cursor: "pointer" }}
+            >
               {course.thumbnail && (
                 <img
                   src={`http://localhost:5000/uploads/${course.thumbnail}`}
@@ -75,12 +88,16 @@ const TeacherCourses = () => {
               <h3>{course.title}</h3>
               <p>{course.description}</p>
               <div className="course-meta">
-                <span>Price: ${course.price}</span>
+                <span>Price: ₹{course.price}</span>
                 <span>Level: {course.level}</span>
               </div>
               <div className="course-actions">
-                <button onClick={() => handleEdit(course.course_id)}>Edit</button>
-                <button onClick={() => handleDelete(course.course_id)}>Delete</button>
+                <button onClick={(e) => handleEdit(e, course.course_id)}>
+                  Edit
+                </button>
+                <button onClick={(e) => handleDelete(e, course.course_id)}>
+                  Delete
+                </button>
               </div>
             </div>
           ))}
