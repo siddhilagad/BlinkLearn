@@ -146,7 +146,12 @@ const Login = () => {
                   <input type="checkbox" />
                   Remember me
                 </label>
-                <span className="forgot-link">Forgot Password?</span>
+                <span 
+  className="forgot-link"
+  onClick={() => navigate("/forgot-password")}
+>
+  Forgot Password?
+</span>
               </div>
 
               <button type="submit" className="login-btn" disabled={loading}>
