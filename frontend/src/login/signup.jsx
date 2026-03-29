@@ -192,17 +192,7 @@ function Signup() {
                 </div>
               </div>
 
-              <div className="input-group">
-                <label>Account Type</label>
-                <select
-                  name="accountType"
-                  value={formData.accountType}
-                  onChange={handleChange}
-                >
-                  <option value="student">Student</option>
-                  <option value="teacher">Teacher</option>
-                </select>
-              </div>
+            
 
               <button type="submit" className="signup-btn" disabled={loading}>
                 {loading ? "Creating Account..." : "Create Account"}

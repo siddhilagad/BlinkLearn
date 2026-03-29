@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
+
 import "./home.css";
 
 function Home() {
@@ -38,7 +38,7 @@ function Home() {
 
   return (
     <div className="home">
-      <Navbar />
+  
 
       {/* HERO SECTION */}
       <section className="hero">

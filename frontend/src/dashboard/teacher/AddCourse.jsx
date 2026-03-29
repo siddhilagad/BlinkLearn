@@ -5,6 +5,8 @@ import "./AddCourse.css";
 
 const AddCourse = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("blinklearn_user")); // ✅ user_id साठी
+
   const [courseData, setCourseData] = useState({
     title: "",
     description: "",
@@ -39,15 +41,16 @@ const AddCourse = () => {
     formData.append("description", courseData.description);
     formData.append("price", courseData.price);
     formData.append("level", courseData.level);
+    formData.append("user_id", user?.user_id); // ✅ user_id add केला
     if (thumbnail) {
       formData.append("thumbnail", thumbnail);
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/teacher/add-course", formData, {
+      const res = await axios.post("http://localhost:5000/add-course", formData, { // ✅ URL fix
         headers: { "Content-Type": "multipart/form-data" },
       });
-      if (res.data.success) {
+      if (res.data.message === "Course added successfully") { // ✅ success check fix
         alert("Course added successfully!");
         navigate("/teacher-courses");
       }
@@ -96,11 +99,11 @@ const AddCourse = () => {
 
           <div className="input-row">
             <div className="input-group">
-              <label>Price ($)</label>
+              <label>Price (₹)</label>
               <input
                 type="number"
                 name="price"
-                placeholder="e.g. 49"
+                placeholder="e.g. 499"
                 value={courseData.price}
                 onChange={handleChange}
                 required

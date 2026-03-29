@@ -162,6 +162,25 @@ app.delete("/delete-course/:courseId/:teacherId", (req, res) => {
   });
 });
 
+// ================= SWITCH ROLE ================= ✅ इथे add कर
+app.put("/switch-role/:userId", (req, res) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+
+  if (!["student", "teacher"].includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
+  }
+
+  const sql = "UPDATE users SET role = ? WHERE user_id = ?";
+  db.query(sql, [role, userId], (err) => {
+    if (err) {
+      console.log("Switch role error:", err);
+      return res.status(500).json({ message: "Failed to switch role" });
+    }
+    res.json({ message: "Role switched successfully", role });
+  });
+});
+
 // ================= SERVER =================
 app.listen(5000, "0.0.0.0", () => {
   console.log("Server running on port 5000");

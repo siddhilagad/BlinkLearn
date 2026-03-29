@@ -1,22 +1,43 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // ✅ added
+import { useNavigate, useLocation } from "react-router-dom"; // ✅ useLocation add
 import "./courses.css";
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // ✅ added
-  const user = JSON.parse(localStorage.getItem("blinklearn_user")); // ✅ updated key
+  const navigate = useNavigate();
+  const location = useLocation(); // ✅ URL params read करायला
+  const user = JSON.parse(localStorage.getItem("blinklearn_user"));
 
   useEffect(() => {
     fetchCourses();
   }, []);
 
+  // ✅ URL मध्ये search param असेल तर filter कर
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchQuery = params.get("search")?.toLowerCase() || "";
+
+    if (searchQuery) {
+      const filtered = courses.filter(
+        (course) =>
+          course.title?.toLowerCase().includes(searchQuery) ||
+          course.description?.toLowerCase().includes(searchQuery) ||
+          course.level?.toLowerCase().includes(searchQuery)
+      );
+      setFilteredCourses(filtered);
+    } else {
+      setFilteredCourses(courses);
+    }
+  }, [location.search, courses]);
+
   const fetchCourses = async () => {
     try {
       const res = await axios.get("http://localhost:5000/courses");
       setCourses(res.data);
+      setFilteredCourses(res.data);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching courses:", err);
@@ -24,7 +45,6 @@ const Courses = () => {
     }
   };
 
-  // ✅ e.stopPropagation() add केला
   const deleteCourse = async (e, courseId) => {
     e.stopPropagation();
     try {
@@ -38,26 +58,49 @@ const Courses = () => {
     }
   };
 
+  // ✅ Search query URL मधून काढ
+  const params = new URLSearchParams(location.search);
+  const searchQuery = params.get("search") || "";
+
   return (
     <div className="courses-page">
       {/* HERO SECTION */}
       <div className="courses-hero">
         <h1>Explore Courses</h1>
         <p>Discover your next skill from our expert-led courses</p>
+
+        {/* ✅ Search result दाखव */}
+        {searchQuery && (
+          <div className="search-result-info">
+            <span>
+              Search results for: <strong>"{searchQuery}"</strong> —{" "}
+              {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""} found
+            </span>
+            <button
+              className="clear-search-btn"
+              onClick={() => navigate("/courses")}
+            >
+              ✕ Clear
+            </button>
+          </div>
+        )}
       </div>
 
       {/* COURSES GRID */}
       <div className="courses-grid">
         {loading ? (
           <p>Loading courses...</p>
-        ) : courses.length === 0 ? (
-          <p>No courses available</p>
+        ) : filteredCourses.length === 0 ? (
+          <div className="no-results">
+            <p>😕 No courses found for "<strong>{searchQuery}</strong>"</p>
+            <button onClick={() => navigate("/courses")}>View All Courses</button>
+          </div>
         ) : (
-          courses.map((course) => (
+          filteredCourses.map((course) => (
             <div
               className="course-card"
               key={course.course_id}
-              onClick={() => navigate(`/course/${course.course_id}`)} // ✅ clickable
+              onClick={() => navigate(`/course/${course.course_id}`)}
               style={{ cursor: "pointer" }}
             >
               <img
@@ -78,11 +121,10 @@ const Courses = () => {
                 <div className="course-info">
                   <span>₹ {course.price}</span>
                 </div>
-                {/* DELETE — only for course owner */}
                 {user && user.user_id === course.tutor_id && (
                   <button
                     className="delete-btn"
-                    onClick={(e) => deleteCourse(e, course.course_id)} // ✅ e pass केला
+                    onClick={(e) => deleteCourse(e, course.course_id)}
                   >
                     Delete Course
                   </button>

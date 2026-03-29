@@ -7,8 +7,7 @@ export const loginUser = async (email, password) => {
   return res.data; // { message, user }
 };
 
-// REGISTER API
-// Object accept करायला बदला
+
 export const registerUser = async ({ fullname, email, password, accountType }) => {
   const res = await axios.post("http://localhost:5000/register", {
     fullname,

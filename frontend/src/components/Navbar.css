@@ -1,24 +1,27 @@
-/* Navbar main container */
+/* ===========================
+   Navbar.css
+   =========================== */
+
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 40px;
-  background-color: #fff1f6;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 12px 40px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
   position: sticky;
   top: 0;
   z-index: 100;
-}
-
-/* Left section */
-.nav-left {
-  display: flex;
-  align-items: center;
   gap: 16px;
 }
 
-/* Logo */
+/* ── Logo ── */
+.nav-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .logo-link {
   text-decoration: none;
   color: inherit;
@@ -28,41 +31,92 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #6c63ff;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.logo h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
 }
 
 .logo-icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
-/* Nav links */
+/* ── Search Bar ── */
+.nav-search {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50px;
+  padding: 8px 16px;
+  gap: 8px;
+  flex: 1;
+  max-width: 320px;
+  transition: background 0.2s, border 0.2s;
+}
+
+.nav-search:focus-within {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.search-icon {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.nav-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  width: 100%;
+}
+
+.nav-search input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Nav Links ── */
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 28px;
+  gap: 4px;
   margin: 0;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .nav-links li a {
   text-decoration: none;
-  font-size: 15px;
-  color: #333;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
-  transition: color 0.3s;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
 }
 
 .nav-links li a:hover {
-  color: #6c63ff;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
-/* Right section */
+/* ── Right Side ── */
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* Icons */
@@ -71,37 +125,37 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: #6c63ff;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.85);
   padding: 8px;
-  border-radius: 12px;
-  transition: transform 0.18s ease, background 0.18s ease;
+  border-radius: 10px;
+  transition: background 0.2s;
   text-decoration: none;
 }
 
 .icon-btn:hover {
-  transform: translateY(-1px);
-  background: rgba(108, 99, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
-/* Generic badge */
-.badge {
+/* Wishlist */
+.wishlist-icon {
+  position: relative;
+}
+
+.wishlist-count {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: #ff3b7a;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
   color: white;
-  font-size: 11px;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 50%;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.2;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  border: 2px solid #fff1f6;
 }
 
 /* Buttons */
@@ -112,42 +166,28 @@
   font-size: 14px;
   cursor: pointer;
   font-weight: 600;
-  background: #ffffff;
-  color: #333;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: transform 0.18s ease, opacity 0.18s ease;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
-  transform: translateY(-1px);
-  opacity: 0.95;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .signup-btn {
-  background: linear-gradient(90deg, #6c63ff, #8f5aff);
-  color: white;
+  background: #ffffff;
+  color: #4f46e5;
+  border: none;
 }
 
-/* Wishlist */
-.wishlist-icon {
-  position: relative;
+.signup-btn:hover {
+  background: #f5f3ff;
 }
 
-.wishlist-count {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  background: #ef4444;
-  color: white;
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 50%;
-  min-width: 18px;
-  text-align: center;
-  line-height: 1.2;
-}
-
-/* Profile menu wrapper on right side */
+/* ── Profile Menu ── */
 .profile-menu {
   position: relative;
 }
@@ -156,58 +196,65 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: white;
-  border: none;
-  border-radius: 999px;
-  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50px;
+  padding: 5px 12px 5px 5px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s;
 }
 
 .profile-trigger:hover {
-  background: #fdf4ff;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .profile-avatar {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: #6c63ff;
+  background: rgba(255, 255, 255, 0.3);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .profile-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  line-height: 1.1;
+  line-height: 1.2;
 }
 
 .profile-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: #222;
+  color: #ffffff;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-role {
-  font-size: 12px;
-  color: #777;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
+/* Dropdown */
 .profile-dropdown {
   position: absolute;
-  top: 52px;
+  top: calc(100% + 10px);
   right: 0;
-  width: 220px;
+  width: 200px;
   background: white;
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  padding: 10px 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
   z-index: 200;
 }
 
@@ -215,18 +262,39 @@
 .profile-dropdown button {
   display: block;
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 16px;
   text-align: left;
   text-decoration: none;
-  color: #333;
+  color: #374151;
   background: none;
   border: none;
   font-size: 14px;
   cursor: pointer;
+  transition: background 0.15s;
+  box-sizing: border-box;
 }
 
 .profile-dropdown a:hover,
 .profile-dropdown button:hover {
-  background: #f9f5ff;
-  color: #6c63ff;
+  background: #f5f3ff;
+  color: #4f46e5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav-search {
+    order: 3;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .nav-links {
+    display: none;
+  }
 }

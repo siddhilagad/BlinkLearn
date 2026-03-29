@@ -3,8 +3,6 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const dns = require('dns');
-dns.setDefaultResultOrder('ipv4first'); // ✅ IPv4 force
 
 class AuthService {
 
@@ -86,18 +84,15 @@ class AuthService {
 
     // 4. Email पाठव
     const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,  // ✅ port 465 साठी true
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+      host: 'smtp.gmail.com',
+port: 587,
+secure: false,
+family: 4,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
     const resetLink = `http://localhost:3000/reset-password/${token}`;
 
