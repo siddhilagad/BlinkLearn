@@ -84,14 +84,17 @@ app.post("/login", (req, res) => {
 app.post("/add-course", upload.single("thumbnail"), (req, res) => {
   const { title, description, price, level, user_id } = req.body;
   const thumbnail = req.file ? req.file.filename : null;
+  
+  // ✅ price 0 असेल तर free
+  const coursePrice = price || 0;
+  const courseType = coursePrice > 0 ? "paid" : "free";
 
-  // Column name tutor_id is okay, but could rename to teacher_id optionally
   const sql = `
     INSERT INTO courses 
-    (title, description, price, level, thumbnail, tutor_id)
-    VALUES (?, ?, ?, ?, ?, ?)
+    (title, description, price, level, thumbnail, tutor_id, type)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  db.query(sql, [title, description, price, level, thumbnail, user_id], (err) => {
+  db.query(sql, [title, description, coursePrice, level, thumbnail, user_id, courseType], (err) => {
     if (err) {
       console.log(err);
       return res.status(500).json({ message: "Course add failed" });
@@ -163,6 +166,7 @@ app.delete("/delete-course/:courseId/:teacherId", (req, res) => {
 });
 
 // ================= SWITCH ROLE ================= ✅ इथे add कर
+// ================= SWITCH ROLE =================
 app.put("/switch-role/:userId", (req, res) => {
   const { userId } = req.params;
   const { role } = req.body;
@@ -171,7 +175,11 @@ app.put("/switch-role/:userId", (req, res) => {
     return res.status(400).json({ message: "Invalid role" });
   }
 
-  const sql = "UPDATE users SET role = ? WHERE user_id = ?";
+  // ✅ teacher बनला तर is_instructor = 1 set कर
+  const sql = role === "teacher"
+    ? "UPDATE users SET role = ?, is_instructor = 1 WHERE user_id = ?"
+    : "UPDATE users SET role = ? WHERE user_id = ?";
+
   db.query(sql, [role, userId], (err) => {
     if (err) {
       console.log("Switch role error:", err);

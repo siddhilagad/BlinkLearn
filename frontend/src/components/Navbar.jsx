@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaSearch } from "react-icons/fa";
+import axios from "axios"; // ✅ add
 import "./Navbar.css";
 
 function Navbar() {
@@ -32,7 +33,6 @@ function Navbar() {
     return () => window.removeEventListener("wishlistUpdated", updateCount);
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".profile-menu")) {
@@ -55,6 +55,38 @@ function Navbar() {
     if (searchQuery.trim()) {
       navigate(`/courses?search=${searchQuery.trim()}`);
       setSearchQuery("");
+    }
+  };
+
+  // ✅ Switch to Teacher
+  const handleSwitchToTeacher = async () => {
+    try {
+      await axios.put(`http://localhost:5000/switch-role/${user.user_id}`, {
+        role: "teacher",
+      });
+      const updatedUser = { ...user, role: "teacher" };
+      localStorage.setItem("blinklearn_user", JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event("blinklearn:userChanged"));
+      setDropdownOpen(false);
+      navigate("/teacher-dashboard");
+    } catch (err) {
+      alert("Failed to switch role");
+    }
+  };
+
+  // ✅ Switch to Student
+  const handleSwitchToStudent = async () => {
+    try {
+      await axios.put(`http://localhost:5000/switch-role/${user.user_id}`, {
+        role: "student",
+      });
+      const updatedUser = { ...user, role: "student" };
+      localStorage.setItem("blinklearn_user", JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event("blinklearn:userChanged"));
+      setDropdownOpen(false);
+      navigate("/student-dashboard");
+    } catch (err) {
+      alert("Failed to switch role");
     }
   };
 
@@ -129,7 +161,6 @@ function Navbar() {
             </Link>
           </>
         ) : (
-          /* Profile Menu */
           <div className="profile-menu">
             <button
               className="profile-trigger"
@@ -162,6 +193,7 @@ function Navbar() {
                 >
                   🏠 Dashboard
                 </Link>
+
                 {isTeacher && (
                   <>
                     <Link to="/my-courses" onClick={() => setDropdownOpen(false)}>
@@ -172,15 +204,32 @@ function Navbar() {
                     </Link>
                   </>
                 )}
+
                 {!isTeacher && (
                   <Link to="/my-learning" onClick={() => setDropdownOpen(false)}>
                     🎓 My Learning
                   </Link>
                 )}
+
                 <Link to="/edit-profile" onClick={() => setDropdownOpen(false)}>
                   ✏️ Edit Profile
                 </Link>
+
                 <hr style={{ margin: "6px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
+
+                {/* ✅ Switch Role */}
+                {!isTeacher ? (
+                  <button onClick={handleSwitchToTeacher}>
+                    🎙️ Become an Instructor
+                  </button>
+                ) : (
+                  <button onClick={handleSwitchToStudent}>
+                    👨‍🎓 Switch to Learning
+                  </button>
+                )}
+
+                <hr style={{ margin: "6px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
+
                 <button onClick={handleLogout}>🚪 Logout</button>
               </div>
             )}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./signup.css";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../api/api"; // api.js मधल्या function call
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Signup() {
   const navigate = useNavigate();
@@ -159,13 +160,11 @@ function Signup() {
                     onChange={handleChange}
                     required
                   />
-                  <button
-                    type="button"
-                    className="toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
+                  <button type="button" className="toggle-password"
+                     onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                   </button>
+                 
                 </div>
               </div>
 
@@ -180,15 +179,11 @@ function Signup() {
                     onChange={handleChange}
                     required
                   />
-                  <button
-                    type="button"
-                    className="toggle-password"
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
-                  >
-                    {showConfirmPassword ? "Hide" : "Show"}
-                  </button>
+              
+<button type="button" className="toggle-password"
+  onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+</button>
                 </div>
               </div>
 

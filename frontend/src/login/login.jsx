@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
 import { loginUser } from "../api/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // ✅ import
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const Login = () => {
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // ✅ 1 state enough
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -25,31 +26,31 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setErrorMsg("");
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
 
-  try {
-    const res = await loginUser(data.email, data.password); // ✅ API call
-    const user = res.user;                                   // ✅ user घ्या
+    try {
+      const res = await loginUser(data.email, data.password);
+      const user = res.user;
 
-    localStorage.setItem("blinklearn_user", JSON.stringify(user)); // ✅ save करा
+      localStorage.setItem("blinklearn_user", JSON.stringify(user));
 
-    const role = user.role?.toLowerCase().trim();
+      const role = user.role?.toLowerCase().trim();
 
-    if (role === "teacher") {
-      navigate("/teacher-dashboard");
-    } else if (role === "student") {
-      navigate("/student-dashboard");
-    } else {
-      alert("Role not recognized");
+      if (role === "teacher") {
+        navigate("/teacher-dashboard");
+      } else if (role === "student") {
+        navigate("/student-dashboard");
+      } else {
+        alert("Role not recognized");
+      }
+    } catch (err) {
+      setErrorMsg(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setErrorMsg(err.message || "Login failed");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="login-page">
@@ -130,13 +131,13 @@ const Login = () => {
                     onChange={handleChange}
                     required
                   />
-
+                  {/* ✅ Eye icon */}
                   <button
                     type="button"
                     className="toggle-password"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? "Hide" : "Show"}
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
@@ -146,12 +147,12 @@ const Login = () => {
                   <input type="checkbox" />
                   Remember me
                 </label>
-                <span 
-  className="forgot-link"
-  onClick={() => navigate("/forgot-password")}
->
-  Forgot Password?
-</span>
+                <span
+                  className="forgot-link"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  Forgot Password?
+                </span>
               </div>
 
               <button type="submit" className="login-btn" disabled={loading}>
@@ -161,7 +162,7 @@ const Login = () => {
             </form>
 
             <p className="signup-text">
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <span onClick={() => navigate("/signup")}>Sign up</span>
             </p>
 

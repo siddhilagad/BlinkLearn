@@ -121,14 +121,15 @@ const Courses = () => {
                 <div className="course-info">
                   <span>₹ {course.price}</span>
                 </div>
-                {user && user.user_id === course.tutor_id && (
-                  <button
-                    className="delete-btn"
-                    onClick={(e) => deleteCourse(e, course.course_id)}
-                  >
-                    Delete Course
-                  </button>
-                )}
+                {user && user.role === "teacher" && user.user_id === course.tutor_id && (
+  <button
+    className="delete-btn"
+    onClick={(e) => deleteCourse(e, course.course_id)}
+  >
+    Delete Course
+  </button>
+)}
+                
               </div>
             </div>
           ))
