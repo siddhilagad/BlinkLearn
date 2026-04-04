@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom"; // ✅ useLocation add
+import { useNavigate, useLocation } from "react-router-dom";
+import { FaHeart, FaRegHeart, FaStar, FaUserFriends, FaClock, FaPlayCircle } from "react-icons/fa";
 import "./courses.css";
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [wishlist, setWishlist] = useState([]);
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ URL params read करायला
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem("blinklearn_user"));
 
   useEffect(() => {
     fetchCourses();
+    const savedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+    setWishlist(savedWishlist);
   }, []);
 
-  // ✅ URL मध्ये search param असेल तर filter कर
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const searchQuery = params.get("search")?.toLowerCase() || "";
-
     if (searchQuery) {
       const filtered = courses.filter(
         (course) =>
@@ -45,51 +47,64 @@ const Courses = () => {
     }
   };
 
-  const deleteCourse = async (e, courseId) => {
+  const toggleWishlist = (e, course) => {
     e.stopPropagation();
-    try {
-      await axios.delete(
-        `http://localhost:5000/delete-course/${courseId}/${user.user_id}`
-      );
-      alert("Course deleted successfully");
-      fetchCourses();
-    } catch (err) {
-      console.error("Delete error:", err);
+    const saved = JSON.parse(localStorage.getItem("wishlist")) || [];
+    const exists = saved.find((c) => c.course_id === course.course_id);
+    let updated;
+    if (exists) {
+      updated = saved.filter((c) => c.course_id !== course.course_id);
+    } else {
+      updated = [...saved, course];
     }
+    localStorage.setItem("wishlist", JSON.stringify(updated));
+    setWishlist(updated);
+    window.dispatchEvent(new Event("wishlistUpdated"));
   };
 
-  // ✅ Search query URL मधून काढ
+  const isWishlisted = (courseId) => wishlist.some((c) => c.course_id === courseId);
+
   const params = new URLSearchParams(location.search);
   const searchQuery = params.get("search") || "";
 
+  const getCategoryColor = (level) => {
+    if (level === "Beginner") return "badge-blue";
+    if (level === "Intermediate") return "badge-green";
+    if (level === "Advanced") return "badge-orange";
+    return "badge-purple";
+  };
+
   return (
     <div className="courses-page">
-      {/* HERO SECTION */}
+
+      {/* HERO */}
       <div className="courses-hero">
         <h1>Explore Courses</h1>
         <p>Discover your next skill from our expert-led courses</p>
-
-        {/* ✅ Search result दाखव */}
         {searchQuery && (
           <div className="search-result-info">
             <span>
-              Search results for: <strong>"{searchQuery}"</strong> —{" "}
-              {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""} found
+              Results for: <strong>"{searchQuery}"</strong> — {filteredCourses.length} course{filteredCourses.length !== 1 ? "s" : ""} found
             </span>
-            <button
-              className="clear-search-btn"
-              onClick={() => navigate("/courses")}
-            >
+            <button className="clear-search-btn" onClick={() => navigate("/courses")}>
               ✕ Clear
             </button>
           </div>
         )}
       </div>
 
-      {/* COURSES GRID */}
+      {/* COUNT BAR */}
+      {!loading && (
+        <div className="courses-count-bar">
+          <span>All Courses</span>
+          <span className="count-label">{filteredCourses.length} results</span>
+        </div>
+      )}
+
+      {/* GRID */}
       <div className="courses-grid">
         {loading ? (
-          <p>Loading courses...</p>
+          <div className="loading-state">⏳ Loading courses...</div>
         ) : filteredCourses.length === 0 ? (
           <div className="no-results">
             <p>😕 No courses found for "<strong>{searchQuery}</strong>"</p>
@@ -101,35 +116,73 @@ const Courses = () => {
               className="course-card"
               key={course.course_id}
               onClick={() => navigate(`/course/${course.course_id}`)}
-              style={{ cursor: "pointer" }}
             >
-              <img
-                src={
-                  course.thumbnail &&
-                  (course.thumbnail.endsWith(".jpeg") ||
-                    course.thumbnail.endsWith(".jpg") ||
-                    course.thumbnail.endsWith(".png"))
-                    ? `http://localhost:5000/uploads/${course.thumbnail}`
-                    : "https://via.placeholder.com/300x200"
-                }
-                alt="course"
-              />
-              <span className="tag">{course.level}</span>
-              <div className="course-content">
-                <h3>{course.title}</h3>
-                <p>{course.description}</p>
-                <div className="course-info">
-                  <span>₹ {course.price}</span>
+              {/* Image */}
+              <div className="card-image-wrapper">
+                <img
+                  src={
+                    course.thumbnail &&
+                    (course.thumbnail.endsWith(".jpeg") ||
+                      course.thumbnail.endsWith(".jpg") ||
+                      course.thumbnail.endsWith(".png"))
+                      ? `http://localhost:5000/uploads/${course.thumbnail}`
+                      : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"
+                  }
+                  alt={course.title}
+                />
+                <span className={`category-badge ${getCategoryColor(course.level)}`}>
+                  {course.level}
+                </span>
+                <button
+                  className="wishlist-btn"
+                  onClick={(e) => toggleWishlist(e, course)}
+                >
+                  {isWishlisted(course.course_id)
+                    ? <FaHeart className="heart-filled" />
+                    : <FaRegHeart className="heart-empty" />
+                  }
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="card-body">
+
+                {/* ✅ Show actual teacher name from DB */}
+                <div className="teacher-row">
+                  <div className="teacher-avatar">
+                    {course.teacher_name?.charAt(0).toUpperCase() || "T"}
+                  </div>
+                  <span className="teacher-name">
+                    {course.teacher_name || user?.name || "Instructor"} {/* ✅ real name */}
+                  </span>
                 </div>
-                {user && user.role === "teacher" && user.user_id === course.tutor_id && (
-  <button
-    className="delete-btn"
-    onClick={(e) => deleteCourse(e, course.course_id)}
-  >
-    Delete Course
-  </button>
-)}
-                
+
+                <h3 className="card-title">{course.title}</h3>
+                <p className="card-desc">{course.description}</p>
+
+                <div className="rating-row">
+                  <FaStar className="star-icon" />
+                  <span className="rating-num">4.8</span>
+                  <span className="rating-count">(1,200)</span>
+                </div>
+
+                <div className="meta-row">
+                  <span className="meta-item"><FaUserFriends /> 12,453</span>
+                  <span className="meta-item"><FaClock /> 3h 20m</span>
+                  <span className="meta-item level-tag">{course.level}</span>
+                </div>
+
+                <div className="card-footer">
+                  <span className="price">
+                    {course.price > 0 ? `₹ ${course.price}` : "Free"}
+                  </span>
+                  <span className="lessons-count">
+                    <FaPlayCircle /> 24 lessons
+                  </span>
+                </div>
+
+                {/* ✅ NO delete button here anymore */}
+
               </div>
             </div>
           ))

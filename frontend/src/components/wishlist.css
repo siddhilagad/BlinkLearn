@@ -1,74 +1,292 @@
-.wishlist-page{
-  min-height:100vh;
-
-  padding:40px;
-
-  background:linear-gradient(
-    135deg,
-    #3b82f6,
-    #8b5cf6,
-    #ec4899
-  );
-
-  font-family:"Segoe UI";
+.wishlist-page {
+  min-height: 100vh;
+  padding: 40px;
+  background: #f5f5f5;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.wishlist-page h1{
-  color:white;
-
-  margin-bottom:30px;
+/* ── HEADER ── */
+.wishlist-header {
+  margin-bottom: 32px;
 }
 
-.empty-text{
-  color:white;
-
-  font-size:18px;
+.wishlist-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 6px;
 }
 
-.wishlist-grid{
-  display:grid;
-
-  grid-template-columns:repeat(3,1fr);
-
-  gap:20px;
+.wishlist-header p {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0;
 }
 
-.wishlist-card{
-  background:white;
-
-  border-radius:16px;
-
-  padding:15px;
-
-  text-align:center;
-
-  box-shadow:0 8px 20px rgba(0,0,0,0.1);
+/* ── EMPTY STATE ── */
+.empty-wishlist {
+  text-align: center;
+  padding: 80px 20px;
 }
 
-.wishlist-card img{
-  width:100%;
-
-  height:160px;
-
-  object-fit:cover;
-
-  border-radius:10px;
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
 }
 
-.wishlist-card h3{
-  margin:10px 0;
+.empty-wishlist h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 10px;
 }
 
-.remove-btn{
-  border:none;
+.empty-wishlist p {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0 0 24px;
+}
 
-  background:#ef4444;
+.empty-wishlist button {
+  padding: 12px 28px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
 
-  color:white;
+.empty-wishlist button:hover {
+  background: #4338ca;
+}
 
-  padding:8px 14px;
+/* ── GRID ── */
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
 
-  border-radius:8px;
+/* ── CARD ── */
+.wishlist-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
 
-  cursor:pointer;
+.wishlist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.14);
+}
+
+/* ── IMAGE ── */
+.wl-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.wl-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.wishlist-card:hover .wl-image-wrapper img {
+  transform: scale(1.04);
+}
+
+.wl-level-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #2563eb;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ✅ Heart button */
+.wl-heart-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: transform 0.2s;
+}
+
+.wl-heart-btn:hover {
+  transform: scale(1.15);
+}
+
+.wl-heart-filled {
+  color: #ef4444;
+  font-size: 16px;
+}
+
+/* ── BODY ── */
+.wl-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.wl-teacher-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wl-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.wl-teacher-name {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.wl-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wl-desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wl-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wl-star { color: #f59e0b; font-size: 13px; }
+.wl-rating-num { font-size: 13px; font-weight: 700; color: #111827; }
+.wl-rating-count { font-size: 12px; color: #9ca3af; }
+
+.wl-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.wl-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.wl-level-tag {
+  background: #f3f4f6;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.wl-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+  margin-top: auto;
+}
+
+.wl-price {
+  font-size: 16px;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+.wl-lessons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.wl-lessons svg { color: #4f46e5; }
+
+/* ── REMOVE BUTTON ── */
+.wl-remove-btn {
+  width: 100%;
+  padding: 9px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+  margin-top: 4px;
+}
+
+.wl-remove-btn:hover {
+  background: #fecaca;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .wishlist-page {
+    padding: 20px 16px;
+  }
+
+  .wishlist-grid {
+    grid-template-columns: 1fr;
+  }
 }

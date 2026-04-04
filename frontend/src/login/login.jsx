@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
 import { loginUser } from "../api/api";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // ✅ import
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import StudentOnboarding from "./studentOnboardingModal";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,9 +14,10 @@ const Login = () => {
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false); // ✅ 1 state enough
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false); // ✅ new state
 
   const handleChange = (e) => {
     setData((prev) => ({
@@ -41,7 +43,13 @@ const Login = () => {
       if (role === "teacher") {
         navigate("/teacher-dashboard");
       } else if (role === "student") {
-        navigate("/student-dashboard");
+        // ✅ Check if onboarding already done
+        const onboardingDone = localStorage.getItem("blinklearn_onboarding_done");
+        if (onboardingDone) {
+          navigate("/student-dashboard");
+        } else {
+          setShowOnboarding(true); // ✅ Show onboarding modal
+        }
       } else {
         alert("Role not recognized");
       }
@@ -52,8 +60,20 @@ const Login = () => {
     }
   };
 
+  // ✅ Called when onboarding is closed/finished
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
+    // StudentOnboarding already navigates to /student-dashboard on finish
+  };
+
   return (
     <div className="login-page">
+
+      {/* ✅ Show onboarding overlay on top of login page */}
+      {showOnboarding && (
+        <StudentOnboarding onClose={handleOnboardingClose} />
+      )}
+
       <div className="login-wrapper">
 
         {/* Left Side */}
@@ -131,7 +151,6 @@ const Login = () => {
                     onChange={handleChange}
                     required
                   />
-                  {/* ✅ Eye icon */}
                   <button
                     type="button"
                     className="toggle-password"

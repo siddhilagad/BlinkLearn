@@ -1,13 +1,25 @@
 import React, { useState } from "react";
 import "./signup.css";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../api/api"; // api.js मधल्या function call
+import { registerUser } from "../api/api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+
+// ====== Password Rules ======
+const passwordRules = [
+  (p) => p.length >= 8,
+  (p) => /[A-Z]/.test(p),
+  (p) => /[a-z]/.test(p),
+  (p) => /[0-9]/.test(p),
+  (p) => /[^A-Za-z0-9]/.test(p),
+];
+
+function isPasswordValid(password) {
+  return passwordRules.every((rule) => rule(password));
+}
 
 function Signup() {
   const navigate = useNavigate();
 
-  // ====== State ======
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -21,37 +33,33 @@ function Signup() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
-  // ====== Handle Input Change ======
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setErrorMsg("");
     setSuccessMsg("");
+    if (e.target.name === "password") setPasswordTouched(true);
   };
 
-  // ====== Handle Form Submit ======
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setErrorMsg("Passwords do not match");
+    if (!isPasswordValid(formData.password)) {
+      setErrorMsg("Please enter a valid password.");
+      setPasswordTouched(true);
       return;
     }
 
-    if (formData.password.length < 6) {
-      setErrorMsg("Password must be at least 6 characters");
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMsg("Passwords do not match.");
       return;
     }
 
     try {
       setLoading(true);
-
-      // ===== API Call using api.js function =====
       const res = await registerUser({
         fullname: formData.fullname.trim(),
         email: formData.email.trim().toLowerCase(),
@@ -60,10 +68,7 @@ function Signup() {
       });
 
       setSuccessMsg(res.message || "Account created successfully");
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 1200);
+      setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
       console.error("Signup error:", err);
       setErrorMsg(err.message || "Registration failed");
@@ -72,10 +77,13 @@ function Signup() {
     }
   };
 
+  const password = formData.password;
+  const isValid = isPasswordValid(password);
+
   return (
     <div className="signup-page">
       <div className="signup-wrapper">
-        {/* ===== Left Side (keep same) ===== */}
+        {/* ===== Left Side ===== */}
         <div className="signup-left">
           <div className="brand-badge">✨ BlinkLearn</div>
           <h1>Create Your Learning Journey</h1>
@@ -92,7 +100,6 @@ function Signup() {
                 <p>Get a learning dashboard tailored to your role and goals.</p>
               </div>
             </div>
-
             <div className="feature-card">
               <span>📖</span>
               <div>
@@ -100,7 +107,6 @@ function Signup() {
                 <p>Access structured content with a smooth and modern UI.</p>
               </div>
             </div>
-
             <div className="feature-card">
               <span>🌟</span>
               <div>
@@ -120,9 +126,7 @@ function Signup() {
             </div>
 
             {errorMsg && <div className="message-box error-box">{errorMsg}</div>}
-            {successMsg && (
-              <div className="message-box success-box">{successMsg}</div>
-            )}
+            {successMsg && <div className="message-box success-box">{successMsg}</div>}
 
             <form onSubmit={handleSubmit} className="signup-form">
               <div className="input-group">
@@ -149,6 +153,7 @@ function Signup() {
                 />
               </div>
 
+              {/* ===== Password Field ===== */}
               <div className="input-group">
                 <label>Password</label>
                 <div className="password-box">
@@ -160,14 +165,24 @@ function Signup() {
                     onChange={handleChange}
                     required
                   />
-                  <button type="button" className="toggle-password"
-                     onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
-                   </button>
-                 
+                  <button
+                    type="button"
+                    className="toggle-password"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
+
+                {/* ✅ Only Valid / Invalid — no checklist */}
+                {passwordTouched && password.length > 0 && (
+                  <p className={isValid ? "pwd-status valid" : "pwd-status invalid"}>
+                    {isValid ? "✅ Valid password" : "❌ Invalid password"}
+                  </p>
+                )}
               </div>
 
+              {/* ===== Confirm Password Field ===== */}
               <div className="input-group">
                 <label>Confirm Password</label>
                 <div className="password-box">
@@ -179,15 +194,27 @@ function Signup() {
                     onChange={handleChange}
                     required
                   />
-              
-<button type="button" className="toggle-password"
-  onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-</button>
+                  <button
+                    type="button"
+                    className="toggle-password"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
                 </div>
-              </div>
 
-            
+                {formData.confirmPassword.length > 0 && (
+                  <p className={
+                    formData.password === formData.confirmPassword
+                      ? "pwd-status valid"
+                      : "pwd-status invalid"
+                  }>
+                    {formData.password === formData.confirmPassword
+                      ? "✅ Passwords match"
+                      : "❌ Passwords do not match"}
+                  </p>
+                )}
+              </div>
 
               <button type="submit" className="signup-btn" disabled={loading}>
                 {loading ? "Creating Account..." : "Create Account"}

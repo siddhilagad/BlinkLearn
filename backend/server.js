@@ -3,8 +3,16 @@ const mysql = require("mysql2");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs"); // ✅ added
 
 const app = express();
+
+// ✅ Auto-create uploads folder if missing
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+  console.log("uploads folder created ✅");
+}
 
 // ================= MIDDLEWARE =================
 app.use(cors());
@@ -15,7 +23,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "YourPassword123",
+  password: "Sanika@123",
   database: "blinklearn",
 });
 
@@ -44,7 +52,6 @@ const upload = multer({ storage });
 app.post("/register", (req, res) => {
   let { fullname, email, password, accountType } = req.body;
 
-  // accountType now only "student" or "teacher"
   const role = accountType.toLowerCase();
   if (!["student", "teacher"].includes(role)) {
     return res.status(400).json({ message: "Invalid account type" });
@@ -81,23 +88,30 @@ app.post("/login", (req, res) => {
 });
 
 // ================= ADD COURSE =================
-app.post("/add-course", upload.single("thumbnail"), (req, res) => {
-  const { title, description, price, level, user_id } = req.body;
+app.post("/api/courses/add-course", upload.single("thumbnail"), (req, res) => {
+  console.log("Body:", req.body);
+  console.log("File:", req.file);
+
+  const { title, description, price, level, teacher_id } = req.body;
+
+  if (!teacher_id) {
+    return res.status(400).json({ message: "teacher_id is missing" });
+  }
+
   const thumbnail = req.file ? req.file.filename : null;
-  
-  // ✅ price 0 असेल तर free
-  const coursePrice = price || 0;
+  const coursePrice = parseFloat(price) || 0; // ✅ parseFloat for decimal
   const courseType = coursePrice > 0 ? "paid" : "free";
 
   const sql = `
     INSERT INTO courses 
-    (title, description, price, level, thumbnail, tutor_id, type)
+    (title, description, price, level, thumbnail, teacher_id, type)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  db.query(sql, [title, description, coursePrice, level, thumbnail, user_id, courseType], (err) => {
+
+  db.query(sql, [title, description, coursePrice, level, thumbnail, teacher_id, courseType], (err) => {
     if (err) {
-      console.log(err);
-      return res.status(500).json({ message: "Course add failed" });
+      console.log("DB Error:", err);
+      return res.status(500).json({ message: "Course add failed", error: err.message });
     }
     res.json({ message: "Course added successfully" });
   });
@@ -115,14 +129,13 @@ app.get("/courses", (req, res) => {
   });
 });
 
-
 // ================= GET SINGLE COURSE =================
 app.get("/course/:courseId", (req, res) => {
   const { courseId } = req.params;
   const sql = `
-    SELECT c.*, u.name as tutor_name, u.email as tutor_email
+    SELECT c.*, u.name as teacher_name, u.email as teacher_email
     FROM courses c
-    JOIN users u ON c.tutor_id = u.user_id
+    JOIN users u ON c.teacher_id = u.user_id
     WHERE c.course_id = ?
   `;
   db.query(sql, [courseId], (err, result) => {
@@ -139,8 +152,8 @@ app.get("/course/:courseId", (req, res) => {
 
 // ================= GET TEACHER COURSES =================
 app.get("/teacher-courses/:id", (req, res) => {
-  const teacherId = req.params.id; // rename tutorId → teacherId
-  const sql = "SELECT * FROM courses WHERE tutor_id = ? ORDER BY course_id DESC";
+  const teacherId = req.params.id;
+  const sql = "SELECT * FROM courses WHERE teacher_id = ? ORDER BY course_id DESC";
 
   db.query(sql, [teacherId], (err, result) => {
     if (err) {
@@ -154,7 +167,7 @@ app.get("/teacher-courses/:id", (req, res) => {
 // ================= DELETE COURSE =================
 app.delete("/delete-course/:courseId/:teacherId", (req, res) => {
   const { courseId, teacherId } = req.params;
-  const sql = "DELETE FROM courses WHERE course_id = ? AND tutor_id = ?";
+  const sql = "DELETE FROM courses WHERE course_id = ? AND teacher_id = ?";
 
   db.query(sql, [courseId, teacherId], (err) => {
     if (err) {
@@ -165,7 +178,6 @@ app.delete("/delete-course/:courseId/:teacherId", (req, res) => {
   });
 });
 
-// ================= SWITCH ROLE ================= ✅ इथे add कर
 // ================= SWITCH ROLE =================
 app.put("/switch-role/:userId", (req, res) => {
   const { userId } = req.params;
@@ -175,10 +187,8 @@ app.put("/switch-role/:userId", (req, res) => {
     return res.status(400).json({ message: "Invalid role" });
   }
 
-  // ✅ teacher बनला तर is_instructor = 1 set कर
-  const sql = role === "teacher"
-    ? "UPDATE users SET role = ?, is_instructor = 1 WHERE user_id = ?"
-    : "UPDATE users SET role = ? WHERE user_id = ?";
+  // ✅ Simple — only update role column
+  const sql = "UPDATE users SET role = ? WHERE user_id = ?";
 
   db.query(sql, [role, userId], (err) => {
     if (err) {

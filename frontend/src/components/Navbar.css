@@ -6,13 +6,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 40px;
+  padding: 8px 40px;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
   position: sticky;
   top: 0;
   z-index: 100;
   gap: 16px;
+  min-height: 68px;
 }
 
 /* ── Logo ── */
@@ -30,21 +31,26 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffffff;
+  gap: 10px;
+  height: 56px;
 }
 
-.logo h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffffff;
+/* ✅ Logo image */
+.logo-img {
+  height: 52px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
 }
 
-.logo-icon {
-  font-size: 16px;
+/* ✅ BlinkLearn text next to logo */
+.logo-text {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 
 /* ── Search Bar ── */
@@ -119,7 +125,6 @@
   flex-shrink: 0;
 }
 
-/* Icons */
 .icon-btn {
   position: relative;
   display: flex;
@@ -138,7 +143,6 @@
   color: #ffffff;
 }
 
-/* Wishlist */
 .wishlist-icon {
   position: relative;
 }
@@ -158,17 +162,15 @@
   font-weight: 700;
 }
 
-/* Buttons */
 .nav-btn {
   padding: 8px 18px;
-  border: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
   transition: background 0.2s;
   white-space: nowrap;
 }
@@ -245,7 +247,7 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Dropdown */
+/* ── Dropdown ── */
 .profile-dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -280,14 +282,21 @@
   color: #4f46e5;
 }
 
-/* Responsive */
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .navbar {
-    padding: 12px 16px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 40px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 16px;
+  min-height: 78px;   /* ✅ taller navbar */
+}
   .nav-search {
     order: 3;
     max-width: 100%;
@@ -297,4 +306,27 @@
   .nav-links {
     display: none;
   }
+
+  .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 70px;   /* ✅ increased */
+}
+
+.logo-img {
+  height: 65px;   /* ✅ increased */
+  width: auto;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+}
+
+.logo-text {
+  font-size: 28px;   /* ✅ slightly bigger text too */
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
 }

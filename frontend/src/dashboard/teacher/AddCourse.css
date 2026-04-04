@@ -251,3 +251,40 @@
     width: 100%;
   }
 }
+
+
+
+
+
+
+
+.success-box {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.required {
+  color: red;
+  margin-left: 3px;
+}
+
+.remove-thumbnail-btn {
+  display: block;
+  margin-top: 8px;
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.remove-thumbnail-btn:hover {
+  background: #d9363e;
+}

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaSearch } from "react-icons/fa";
-import axios from "axios"; // ✅ add
+import axios from "axios";
 import "./Navbar.css";
+import logo from "../assets/images/logo.png";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -14,7 +15,6 @@ function Navbar() {
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
     setUser(storedUser);
-
     const updateUser = () => {
       const updated = JSON.parse(localStorage.getItem("blinklearn_user"));
       setUser(updated);
@@ -58,12 +58,9 @@ function Navbar() {
     }
   };
 
-  // ✅ Switch to Teacher
   const handleSwitchToTeacher = async () => {
     try {
-      await axios.put(`http://localhost:5000/switch-role/${user.user_id}`, {
-        role: "teacher",
-      });
+      await axios.put(`http://localhost:5000/switch-role/${user.user_id}`, { role: "teacher" });
       const updatedUser = { ...user, role: "teacher" };
       localStorage.setItem("blinklearn_user", JSON.stringify(updatedUser));
       window.dispatchEvent(new Event("blinklearn:userChanged"));
@@ -74,12 +71,9 @@ function Navbar() {
     }
   };
 
-  // ✅ Switch to Student
   const handleSwitchToStudent = async () => {
     try {
-      await axios.put(`http://localhost:5000/switch-role/${user.user_id}`, {
-        role: "student",
-      });
+      await axios.put(`http://localhost:5000/switch-role/${user.user_id}`, { role: "student" });
       const updatedUser = { ...user, role: "student" };
       localStorage.setItem("blinklearn_user", JSON.stringify(updatedUser));
       window.dispatchEvent(new Event("blinklearn:userChanged"));
@@ -94,12 +88,13 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      {/* LEFT — Logo */}
+
+      {/* LEFT — Logo ✅ logo + text side by side */}
       <div className="nav-left">
         <Link to="/" className="logo-link">
           <div className="logo">
-            <div className="logo-icon">▶</div>
-            <h2>BlinkLearn</h2>
+            <img src={logo} alt="BlinkLearn" className="logo-img" />
+            <span className="logo-text">BlinkLearn</span>
           </div>
         </Link>
       </div>
@@ -118,7 +113,6 @@ function Navbar() {
       {/* CENTER — Nav Links */}
       <ul className="nav-links">
         <li><Link to="/courses">Explore</Link></li>
-
         {user && isTeacher && (
           <>
             <li><Link to="/teacher-dashboard">Dashboard</Link></li>
@@ -126,7 +120,6 @@ function Navbar() {
             <li><Link to="/add-course">Add Course</Link></li>
           </>
         )}
-
         {user && !isTeacher && (
           <>
             <li><Link to="/student-dashboard">Dashboard</Link></li>
@@ -137,7 +130,6 @@ function Navbar() {
 
       {/* RIGHT */}
       <div className="nav-right">
-        {/* Wishlist */}
         <Link to="/wishlist" className="icon-btn wishlist-icon">
           <FaHeart />
           {wishlistCount > 0 && (
@@ -145,12 +137,10 @@ function Navbar() {
           )}
         </Link>
 
-        {/* Cart */}
         <Link to="/cart" className="icon-btn">
           <FaShoppingCart />
         </Link>
 
-        {/* Auth */}
         {!user ? (
           <>
             <Link to="/login">
@@ -179,9 +169,7 @@ function Navbar() {
               </div>
               <div className="profile-info">
                 <span className="profile-name">{user.name}</span>
-                <span className="profile-role">
-                  {isTeacher ? "Teacher" : "Student"}
-                </span>
+                <span className="profile-role">{isTeacher ? "Teacher" : "Student"}</span>
               </div>
             </button>
 
@@ -217,20 +205,17 @@ function Navbar() {
 
                 <hr style={{ margin: "6px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
 
-                {/* ✅ Switch Role */}
                 {!isTeacher ? (
-                  <button onClick={handleSwitchToTeacher}>
-                    🎙️ Become an Instructor
-                  </button>
+                  <button onClick={handleSwitchToTeacher}>🎙️ Become an Instructor</button>
                 ) : (
-                  <button onClick={handleSwitchToStudent}>
-                    👨‍🎓 Switch to Learning
-                  </button>
+                  <button onClick={handleSwitchToStudent}>👨‍🎓 Switch to Learning</button>
                 )}
 
                 <hr style={{ margin: "6px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
 
                 <button onClick={handleLogout}>🚪 Logout</button>
+
+                {/* ✅ REMOVED misplaced logo div that was here */}
               </div>
             )}
           </div>

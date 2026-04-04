@@ -32,7 +32,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-/* LEFT */
+/* ===== LEFT ===== */
 .signup-left {
   padding: 60px;
   color: white;
@@ -107,7 +107,7 @@ body {
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* RIGHT */
+/* ===== RIGHT ===== */
 .signup-right {
   background: #ffffff;
   display: flex;
@@ -137,6 +137,7 @@ body {
   line-height: 1.5;
 }
 
+/* ===== Messages ===== */
 .message-box {
   padding: 12px 14px;
   border-radius: 12px;
@@ -156,6 +157,7 @@ body {
   border: 1px solid #bbf7d0;
 }
 
+/* ===== Form ===== */
 .signup-form {
   display: flex;
   flex-direction: column;
@@ -193,6 +195,7 @@ body {
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
 }
 
+/* ===== Password Box ===== */
 .password-box {
   position: relative;
   display: flex;
@@ -200,22 +203,46 @@ body {
 }
 
 .password-box input {
-  padding-right: 80px;
+  padding-right: 48px;
 }
 
 .toggle-password {
   position: absolute;
-  right: 12px;
+  right: 14px;
   background: transparent;
   border: none;
   color: #4f46e5;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
   cursor: pointer;
   width: auto;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.toggle-password:hover {
+  color: #7c3aed;
+}
+
+/* ===== Password Valid / Invalid Status ===== */
+.pwd-status {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+  padding-left: 2px;
+  transition: color 0.2s ease;
+}
+
+.pwd-status.valid {
+  color: #16a34a;
+}
+
+.pwd-status.invalid {
+  color: #dc2626;
+}
+
+/* ===== Submit Button ===== */
 .signup-btn {
   width: 100%;
   padding: 14px;
@@ -242,6 +269,7 @@ body {
   transform: none;
 }
 
+/* ===== Sign In Text ===== */
 .signin-text {
   margin-top: 22px;
   text-align: center;
@@ -255,7 +283,7 @@ body {
   font-weight: 700;
 }
 
-/* Responsive */
+/* ===== Responsive ===== */
 @media (max-width: 992px) {
   .signup-wrapper {
     grid-template-columns: 1fr;
