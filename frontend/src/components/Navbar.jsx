@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaHeart, FaShoppingCart, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import "./Navbar.css";
@@ -7,10 +7,14 @@ import logo from "../assets/images/logo.png";
 
 function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ Added
   const [wishlistCount, setWishlistCount] = useState(0);
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // ✅ Helper function to check active route
+  const isActive = (path) => location.pathname === path ? "active-link" : "";
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
@@ -89,7 +93,7 @@ function Navbar() {
   return (
     <nav className="navbar">
 
-      {/* LEFT — Logo ✅ logo + text side by side */}
+      {/* LEFT — Logo */}
       <div className="nav-left">
         <Link to="/" className="logo-link">
           <div className="logo">
@@ -112,18 +116,30 @@ function Navbar() {
 
       {/* CENTER — Nav Links */}
       <ul className="nav-links">
-        <li><Link to="/courses">Explore</Link></li>
+        <li>
+          <Link to="/courses" className={isActive("/courses")}>Explore</Link>
+        </li>
         {user && isTeacher && (
           <>
-            <li><Link to="/teacher-dashboard">Dashboard</Link></li>
-            <li><Link to="/my-courses">My Courses</Link></li>
-            <li><Link to="/add-course">Add Course</Link></li>
+            <li>
+              <Link to="/teacher-dashboard" className={isActive("/teacher-dashboard")}>Dashboard</Link>
+            </li>
+            <li>
+              <Link to="/my-courses" className={isActive("/my-courses")}>My Courses</Link>
+            </li>
+            <li>
+              <Link to="/add-course" className={isActive("/add-course")}>Add Course</Link>
+            </li>
           </>
         )}
         {user && !isTeacher && (
           <>
-            <li><Link to="/student-dashboard">Dashboard</Link></li>
-            <li><Link to="/my-learning">My Learning</Link></li>
+            <li>
+              <Link to="/student-dashboard" className={isActive("/student-dashboard")}>Dashboard</Link>
+            </li>
+            <li>
+              <Link to="/my-learning" className={isActive("/my-learning")}>My Learning</Link>
+            </li>
           </>
         )}
       </ul>
@@ -214,8 +230,6 @@ function Navbar() {
                 <hr style={{ margin: "6px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
 
                 <button onClick={handleLogout}>🚪 Logout</button>
-
-                {/* ✅ REMOVED misplaced logo div that was here */}
               </div>
             )}
           </div>

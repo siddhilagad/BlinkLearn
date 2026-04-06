@@ -5,6 +5,7 @@ import "./login.css";
 import { loginUser } from "../api/api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import StudentOnboarding from "./studentOnboardingModal";
+import Navbar from "../components/Navbar"; // ✅ adjust path if needed
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [showOnboarding, setShowOnboarding] = useState(false); // ✅ new state
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleChange = (e) => {
     setData((prev) => ({
@@ -43,12 +44,11 @@ const Login = () => {
       if (role === "teacher") {
         navigate("/teacher-dashboard");
       } else if (role === "student") {
-        // ✅ Check if onboarding already done
         const onboardingDone = localStorage.getItem("blinklearn_onboarding_done");
         if (onboardingDone) {
           navigate("/student-dashboard");
         } else {
-          setShowOnboarding(true); // ✅ Show onboarding modal
+          setShowOnboarding(true);
         }
       } else {
         alert("Role not recognized");
@@ -60,135 +60,136 @@ const Login = () => {
     }
   };
 
-  // ✅ Called when onboarding is closed/finished
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
-    // StudentOnboarding already navigates to /student-dashboard on finish
   };
 
   return (
-    <div className="login-page">
+    <>
+      <Navbar /> {/* ✅ Navbar added */}
 
-      {/* ✅ Show onboarding overlay on top of login page */}
-      {showOnboarding && (
-        <StudentOnboarding onClose={handleOnboardingClose} />
-      )}
+      <div className="login-page">
 
-      <div className="login-wrapper">
+        {showOnboarding && (
+          <StudentOnboarding onClose={handleOnboardingClose} />
+        )}
 
-        {/* Left Side */}
-        <div className="login-left">
-          <Link to="/" className="logo-link">
-            <div className="brand-badge">🎓 BlinkLearn</div>
-          </Link>
+        <div className="login-wrapper">
 
-          <h1>Welcome Back to BlinkLearn</h1>
-          <p>
-            Learn smarter, teach better, and manage your courses with a modern
-            learning platform built for students and tutors.
-          </p>
+          {/* Left Side */}
+          <div className="login-left">
+            <Link to="/" className="logo-link">
+              <div className="brand-badge">🎓 BlinkLearn</div>
+            </Link>
 
-          <div className="feature-list">
-            <div className="feature-card">
-              <span>📚</span>
-              <div>
-                <h4>Smart Learning</h4>
-                <p>Access interactive courses and structured learning paths.</p>
-              </div>
-            </div>
+            <h1>Welcome Back to BlinkLearn</h1>
+            <p>
+              Learn smarter, teach better, and manage your courses with a modern
+              learning platform built for students and tutors.
+            </p>
 
-            <div className="feature-card">
-              <span>👨‍🏫</span>
-              <div>
-                <h4>For Tutors</h4>
-                <p>Create, manage, and track your teaching dashboard easily.</p>
-              </div>
-            </div>
-
-            <div className="feature-card">
-              <span>🚀</span>
-              <div>
-                <h4>Fast Experience</h4>
-                <p>Responsive, modern, and client-ready interface design.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Side */}
-        <div className="login-right">
-          <div className="login-card">
-
-            <div className="login-header">
-              <h2>Sign In</h2>
-              <p>Enter your credentials to access your account</p>
-            </div>
-
-            {errorMsg && <div className="error-box">{errorMsg}</div>}
-
-            <form onSubmit={handleSubmit} className="login-form">
-
-              <div className="input-group">
-                <label>Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  value={data.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="input-group">
-                <label>Password</label>
-                <div className="password-box">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Enter your password"
-                    value={data.password}
-                    onChange={handleChange}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
+            <div className="feature-list">
+              <div className="feature-card">
+                <span>📚</span>
+                <div>
+                  <h4>Smart Learning</h4>
+                  <p>Access interactive courses and structured learning paths.</p>
                 </div>
               </div>
 
-              <div className="form-options">
-                <label className="remember-me">
-                  <input type="checkbox" />
-                  Remember me
-                </label>
-                <span
-                  className="forgot-link"
-                  onClick={() => navigate("/forgot-password")}
-                >
-                  Forgot Password?
-                </span>
+              <div className="feature-card">
+                <span>👨‍🏫</span>
+                <div>
+                  <h4>For Tutors</h4>
+                  <p>Create, manage, and track your teaching dashboard easily.</p>
+                </div>
               </div>
 
-              <button type="submit" className="login-btn" disabled={loading}>
-                {loading ? "Signing In..." : "Login"}
-              </button>
+              <div className="feature-card">
+                <span>🚀</span>
+                <div>
+                  <h4>Fast Experience</h4>
+                  <p>Responsive, modern, and client-ready interface design.</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            </form>
+          {/* Right Side */}
+          <div className="login-right">
+            <div className="login-card">
 
-            <p className="signup-text">
-              Don't have an account?{" "}
-              <span onClick={() => navigate("/signup")}>Sign up</span>
-            </p>
+              <div className="login-header">
+                <h2>Sign In</h2>
+                <p>Enter your credentials to access your account</p>
+              </div>
 
+              {errorMsg && <div className="error-box">{errorMsg}</div>}
+
+              <form onSubmit={handleSubmit} className="login-form">
+
+                <div className="input-group">
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={data.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Password</label>
+                  <div className="password-box">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder="Enter your password"
+                      value={data.password}
+                      onChange={handleChange}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-options">
+                  <label className="remember-me">
+                    <input type="checkbox" />
+                    Remember me
+                  </label>
+                  <span
+                    className="forgot-link"
+                    onClick={() => navigate("/forgot-password")}
+                  >
+                    Forgot Password?
+                  </span>
+                </div>
+
+                <button type="submit" className="login-btn" disabled={loading}>
+                  {loading ? "Signing In..." : "Login"}
+                </button>
+
+              </form>
+
+              <p className="signup-text">
+                Don't have an account?{" "}
+                <span onClick={() => navigate("/signup")}>Sign up</span>
+              </p>
+
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
