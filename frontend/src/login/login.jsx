@@ -1,11 +1,11 @@
-// src/login/login.jsx
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
 import { loginUser } from "../api/api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import StudentOnboarding from "./studentOnboardingModal";
-import Navbar from "../components/Navbar"; // ✅ adjust path if needed
+import Navbar from "../components/Navbar";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -44,11 +44,12 @@ const Login = () => {
       if (role === "teacher") {
         navigate("/teacher-dashboard");
       } else if (role === "student") {
-        const onboardingDone = localStorage.getItem("blinklearn_onboarding_done");
+        // ✅ FIXED: strict check — only skip if value is exactly "true"
+        const onboardingDone = localStorage.getItem("blinklearn_onboarding_done") === "true";
         if (onboardingDone) {
           navigate("/student-dashboard");
         } else {
-          setShowOnboarding(true);
+          setShowOnboarding(true); // ✅ show onboarding for first-time students
         }
       } else {
         alert("Role not recognized");
@@ -65,15 +66,16 @@ const Login = () => {
   };
 
   return (
+    // ✅ FIXED: Modal is now OUTSIDE login-page div — no more clipping/z-index issues
     <>
-      <Navbar /> {/* ✅ Navbar added */}
+      <Navbar />
+
+      {/* ✅ Modal placed here — at the very top level, not inside any div */}
+      {showOnboarding && (
+        <StudentOnboarding onClose={handleOnboardingClose} />
+      )}
 
       <div className="login-page">
-
-        {showOnboarding && (
-          <StudentOnboarding onClose={handleOnboardingClose} />
-        )}
-
         <div className="login-wrapper">
 
           {/* Left Side */}
