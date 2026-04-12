@@ -23,7 +23,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "Sanika@123",
+  password: "YourPassword123",
   database: "blinklearn",
 });
 
