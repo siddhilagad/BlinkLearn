@@ -3,7 +3,7 @@ const mysql = require("mysql2");
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "YourPassword123",  // ✅ तुझा password इथे द्या
+  password: "Sanika@123",
   database: "blinklearn",
   port: 3306
 });

@@ -1,84 +1,197 @@
+
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
+import { loginUser } from "../api/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import StudentOnboarding from "./studentOnboardingModal";
+import Navbar from "../components/Navbar";
 
-const Login = ({ onClose }) => {
+const Login = () => {
+  const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [data, setData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleLogin = (e) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
+  const handleChange = (e) => {
+    setData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+    setErrorMsg("");
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
 
-    const storedUsers =
-      JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      const res = await loginUser(data.email, data.password);
+      const user = res.user;
 
-    const foundUser = storedUsers.find(
-      (user) =>
-        user.email === email &&
-        user.password === password
-    );
+      localStorage.setItem("blinklearn_user", JSON.stringify(user));
 
-    if (!foundUser) {
+      const role = user.role?.toLowerCase().trim();
 
-      alert("Invalid credentials");
-      return;
-
+      if (role === "teacher") {
+        navigate("/teacher-dashboard");
+      } else if (role === "student") {
+        // ✅ FIXED: strict check — only skip if value is exactly "true"
+        const onboardingDone = localStorage.getItem("blinklearn_onboarding_done") === "true";
+        if (onboardingDone) {
+          navigate("/student-dashboard");
+        } else {
+          setShowOnboarding(true); // ✅ show onboarding for first-time students
+        }
+      } else {
+        alert("Role not recognized");
+      }
+    } catch (err) {
+      setErrorMsg(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    localStorage.setItem(
-      "blinklearn_user",
-      JSON.stringify(foundUser)
-    );
-
-    window.dispatchEvent(
-      new Event("blinklearn:userChanged")
-    );
-
-    alert("Login successful");
-
-    onClose(); // close modal
-
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
   };
 
   return (
+    // ✅ FIXED: Modal is now OUTSIDE login-page div — no more clipping/z-index issues
+    <>
+      <Navbar />
 
-    <div className="login-container">
+      {/* ✅ Modal placed here — at the very top level, not inside any div */}
+      {showOnboarding && (
+        <StudentOnboarding onClose={handleOnboardingClose} />
+      )}
 
-      <h2>Login</h2>
+      <div className="login-page">
+        <div className="login-wrapper">
 
-      <form onSubmit={handleLogin}>
+          {/* Left Side */}
+          <div className="login-left">
+            <Link to="/" className="logo-link">
+              <div className="brand-badge">🎓 BlinkLearn</div>
+            </Link>
 
-        <input
-          type="email"
-          placeholder="Enter Email"
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-          required
-        />
+            <h1>Welcome Back to BlinkLearn</h1>
+            <p>
+              Learn smarter, teach better, and manage your courses with a modern
+              learning platform built for students and tutors.
+            </p>
 
-        <input
-          type="password"
-          placeholder="Enter Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          required
-        />
+            <div className="feature-list">
+              <div className="feature-card">
+                <span>📚</span>
+                <div>
+                  <h4>Smart Learning</h4>
+                  <p>Access interactive courses and structured learning paths.</p>
+                </div>
+              </div>
 
-        <button type="submit">
-          Login
-        </button>
+              <div className="feature-card">
+                <span>👨‍🏫</span>
+                <div>
+                  <h4>For Tutors</h4>
+                  <p>Create, manage, and track your teaching dashboard easily.</p>
+                </div>
+              </div>
 
-      </form>
+              <div className="feature-card">
+                <span>🚀</span>
+                <div>
+                  <h4>Fast Experience</h4>
+                  <p>Responsive, modern, and client-ready interface design.</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      
+          {/* Right Side */}
+          <div className="login-right">
+            <div className="login-card">
 
-    </div>
+              <div className="login-header">
+                <h2>Sign In</h2>
+                <p>Enter your credentials to access your account</p>
+              </div>
 
+              {errorMsg && <div className="error-box">{errorMsg}</div>}
+
+              <form onSubmit={handleSubmit} className="login-form">
+
+                <div className="input-group">
+                  <label>Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={data.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Password</label>
+                  <div className="password-box">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder="Enter your password"
+                      value={data.password}
+                      onChange={handleChange}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-options">
+                  <label className="remember-me">
+                    <input type="checkbox" />
+                    Remember me
+                  </label>
+                  <span
+                    className="forgot-link"
+                    onClick={() => navigate("/forgot-password")}
+                  >
+                    Forgot Password?
+                  </span>
+                </div>
+
+                <button type="submit" className="login-btn" disabled={loading}>
+                  {loading ? "Signing In..." : "Login"}
+                </button>
+
+              </form>
+
+              <p className="signup-text">
+                Don't have an account?{" "}
+                <span onClick={() => navigate("/signup")}>Sign up</span>
+              </p>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 
