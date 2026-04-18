@@ -1,251 +1,335 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./AddCourse.css";
 
-const AddCourse = () => {
+function AddCourse() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("blinklearn_user"));
 
-  const [courseData, setCourseData] = useState({
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
     price: "",
     level: "Beginner",
+    category: "",
   });
+
   const [thumbnail, setThumbnail] = useState(null);
+  const [previewVideo, setPreviewVideo] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleChange = (e) => {
-    setCourseData({ ...courseData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setErrorMsg("");
-    setSuccessMsg("");
   };
 
-  const handleFileChange = (e) => {
+  const handleThumbnail = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
     setThumbnail(file);
-    if (file) {
-      setThumbnailPreview(URL.createObjectURL(file));
-    }
+    setThumbnailPreview(URL.createObjectURL(file));
   };
 
-  const handleRemoveThumbnail = () => {
-    setThumbnail(null);
-    setThumbnailPreview(null);
+  const handleVideo = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate size — max 500MB
+    if (file.size > 500 * 1024 * 1024) {
+      setErrorMsg("Video must be under 500MB.");
+      return;
+    }
+
+    setPreviewVideo(file);
+    setVideoPreview(URL.createObjectURL(file));
+    setErrorMsg("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
 
-    // Validation
-    if (!user?.user_id) {
-      setErrorMsg("User not logged in. Please login again.");
-      setLoading(false);
-      return;
-    }
-
-    if (!courseData.title.trim()) {
-      setErrorMsg("Course title is required.");
-      setLoading(false);
-      return;
-    }
-
-    if (!courseData.description.trim()) {
-      setErrorMsg("Course description is required.");
-      setLoading(false);
-      return;
-    }
-
-    if (!courseData.price || Number(courseData.price) < 0) {
-      setErrorMsg("Please enter a valid price.");
-      setLoading(false);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("title", courseData.title.trim());
-    formData.append("description", courseData.description.trim());
-    formData.append("price", courseData.price);
-    formData.append("level", courseData.level);
-    formData.append("teacher_id", user?.user_id); // ✅ Fixed: teacher_id
-
-    if (thumbnail) {
-      formData.append("thumbnail", thumbnail);
-    }
+    if (!formData.title.trim()) return setErrorMsg("Title is required.");
+    if (!formData.description.trim()) return setErrorMsg("Description is required.");
+    if (!formData.price) return setErrorMsg("Price is required.");
+    if (!thumbnail) return setErrorMsg("Please upload a course thumbnail.");
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/courses/add-course", // ✅ Fixed URL
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      setLoading(true);
+      setUploadProgress(0);
 
-      if (res.data.message === "Course added successfully") {
-        setSuccessMsg("✅ Course added successfully! Redirecting...");
-        setCourseData({
-          title: "",
-          description: "",
-          price: "",
-          level: "Beginner",
-        });
-        setThumbnail(null);
-        setThumbnailPreview(null);
-
-        setTimeout(() => {
-          navigate("/teacher-courses");
-        }, 1500);
+      const data = new FormData();
+      data.append("teacher_id", user.user_id);
+      data.append("title", formData.title.trim());
+      data.append("description", formData.description.trim());
+      data.append("price", formData.price);
+      data.append("level", formData.level);
+      data.append("category", formData.category.trim());
+      data.append("thumbnail", thumbnail);
+      if (previewVideo) {
+        data.append("preview_video", previewVideo);
       }
+
+      await axios.post("http://localhost:5000/add-course", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percent);
+        },
+      });
+
+      setSuccessMsg("Course added successfully! 🎉");
+      setTimeout(() => navigate("/my-courses"), 1500);
+
     } catch (err) {
-      console.error("Add course error:", err);
+      console.error(err);
       setErrorMsg(
-        err.response?.data?.message || "Something went wrong. Please try again."
+        err.response?.data?.message || "Failed to add course. Please try again."
       );
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
   return (
-    <div className="add-course-page">
-      <div className="add-course-card">
-        <div className="add-course-header">
-          <span className="add-course-badge">Teacher Panel</span>
-          <h2>Add New Course</h2>
-          <p>Fill in the details below to publish your course</p>
+    <div className="ac-page">
+      <div className="ac-container">
+
+        {/* Header */}
+        <div className="ac-header">
+          <button className="ac-back-btn" onClick={() => navigate(-1)}>
+            ← Back
+          </button>
+          <div>
+            <h1 className="ac-title">Add New Course</h1>
+            <p className="ac-subtitle">Fill in the details to publish your course</p>
+          </div>
         </div>
 
-        {/* Error Message */}
-        {errorMsg && (
-          <div className="error-box">
-            ⚠️ {errorMsg}
-          </div>
-        )}
+        {errorMsg && <div className="ac-alert error">{errorMsg}</div>}
+        {successMsg && <div className="ac-alert success">{successMsg}</div>}
 
-        {/* Success Message */}
-        {successMsg && (
-          <div className="success-box">
-            {successMsg}
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="ac-form">
 
-        <form className="add-course-form" onSubmit={handleSubmit}>
+          <div className="ac-two-col">
 
-          {/* Course Title */}
-          <div className="input-group">
-            <label>Course Title <span className="required">*</span></label>
-            <input
-              type="text"
-              name="title"
-              placeholder="e.g. Full Stack Web Development"
-              value={courseData.title}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            {/* LEFT — Form Fields */}
+            <div className="ac-left">
 
-          {/* Description */}
-          <div className="input-group">
-            <label>Description <span className="required">*</span></label>
-            <textarea
-              name="description"
-              placeholder="Brief overview of what students will learn..."
-              value={courseData.description}
-              onChange={handleChange}
-              rows={5}
-              required
-            ></textarea>
-          </div>
+              <div className="ac-field">
+                <label>Course Title <span>*</span></label>
+                <input
+                  type="text"
+                  name="title"
+                  placeholder="e.g. Complete Node.js Course"
+                  value={formData.title}
+                  onChange={handleChange}
+                  disabled={loading}
+                  required
+                />
+              </div>
 
-          {/* Price & Level */}
-          <div className="input-row">
-            <div className="input-group">
-              <label>Price (₹) <span className="required">*</span></label>
-              <input
-                type="number"
-                name="price"
-                placeholder="e.g. 499"
-                value={courseData.price}
-                onChange={handleChange}
-                min="0"
-                required
-              />
+              <div className="ac-field">
+                <label>Description <span>*</span></label>
+                <textarea
+                  name="description"
+                  placeholder="What will students learn in this course?"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={5}
+                  disabled={loading}
+                  required
+                />
+              </div>
+
+              <div className="ac-row">
+                <div className="ac-field">
+                  <label>Price (₹) <span>*</span></label>
+                  <input
+                    type="number"
+                    name="price"
+                    placeholder="0 for free"
+                    value={formData.price}
+                    onChange={handleChange}
+                    min="0"
+                    disabled={loading}
+                    required
+                  />
+                </div>
+
+                <div className="ac-field">
+                  <label>Level</label>
+                  <select
+                    name="level"
+                    value={formData.level}
+                    onChange={handleChange}
+                    disabled={loading}
+                  >
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="ac-field">
+                <label>Category</label>
+                <input
+                  type="text"
+                  name="category"
+                  placeholder="e.g. Web Development, Data Science"
+                  value={formData.category}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+              </div>
+
             </div>
 
-            <div className="input-group">
-              <label>Level</label>
-              <select
-                name="level"
-                value={courseData.level}
-                onChange={handleChange}
-              >
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
+            {/* RIGHT — Upload Section */}
+            <div className="ac-right">
+
+              {/* Thumbnail Upload */}
+              <div className="ac-field">
+                <label>Course Thumbnail <span>*</span></label>
+                <div
+                  className="ac-upload-box"
+                  onClick={() => document.getElementById("thumbnailInput").click()}
+                >
+                  {thumbnailPreview ? (
+                    <img
+                      src={thumbnailPreview}
+                      alt="Thumbnail Preview"
+                      className="ac-thumb-preview"
+                    />
+                  ) : (
+                    <div className="ac-upload-placeholder">
+                      <span className="ac-upload-icon">🖼️</span>
+                      <p>Click to upload thumbnail</p>
+                      <small>JPG, PNG, WEBP • Max 5MB</small>
+                    </div>
+                  )}
+                </div>
+                <input
+                  id="thumbnailInput"
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleThumbnail}
+                  disabled={loading}
+                  style={{ display: "none" }}
+                />
+                {thumbnailPreview && (
+                  <button
+                    type="button"
+                    className="ac-remove-btn"
+                    onClick={() => {
+                      setThumbnail(null);
+                      setThumbnailPreview(null);
+                    }}
+                  >
+                    ✕ Remove Thumbnail
+                  </button>
+                )}
+              </div>
+
+              {/* ✅ Video Upload */}
+              <div className="ac-field">
+                <label>Preview Video <span className="ac-optional">(Optional)</span></label>
+                <div
+                  className="ac-upload-box video-box"
+                  onClick={() =>
+                    !videoPreview &&
+                    document.getElementById("videoInput").click()
+                  }
+                >
+                  {videoPreview ? (
+                    <video
+                      src={videoPreview}
+                      controls
+                      className="ac-video-preview"
+                    />
+                  ) : (
+                    <div className="ac-upload-placeholder">
+                      <span className="ac-upload-icon">🎬</span>
+                      <p>Click to upload preview video</p>
+                      <small>MP4, MOV, WEBM • Max 500MB</small>
+                    </div>
+                  )}
+                </div>
+                <input
+                  id="videoInput"
+                  type="file"
+                  accept="video/mp4,video/quicktime,video/webm"
+                  onChange={handleVideo}
+                  disabled={loading}
+                  style={{ display: "none" }}
+                />
+                {videoPreview && (
+                  <button
+                    type="button"
+                    className="ac-remove-btn"
+                    onClick={() => {
+                      setPreviewVideo(null);
+                      setVideoPreview(null);
+                    }}
+                  >
+                    ✕ Remove Video
+                  </button>
+                )}
+                {previewVideo && (
+                  <p className="ac-file-name">
+                    📁 {previewVideo.name} —{" "}
+                    {(previewVideo.size / (1024 * 1024)).toFixed(1)} MB
+                  </p>
+                )}
+              </div>
+
             </div>
           </div>
 
-          {/* Thumbnail Upload */}
-          <div className="input-group">
-            <label>Thumbnail (optional)</label>
-            <div className="file-upload-wrapper">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                id="thumbnail-input"
-              />
-              <label htmlFor="thumbnail-input" className="file-upload-label">
-                📁 Choose Image
-              </label>
-              {thumbnail && (
-                <span className="file-name">{thumbnail.name}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Thumbnail Preview */}
-          {thumbnailPreview && (
-            <div className="thumbnail-preview">
-              <img src={thumbnailPreview} alt="Thumbnail Preview" />
-              <button
-                type="button"
-                className="remove-thumbnail-btn"
-                onClick={handleRemoveThumbnail}
-              >
-                ✕ Remove
-              </button>
+          {/* Upload Progress Bar */}
+          {loading && uploadProgress > 0 && (
+            <div className="ac-progress-wrapper">
+              <div className="ac-progress-label">
+                Uploading... {uploadProgress}%
+              </div>
+              <div className="ac-progress-track">
+                <div
+                  className="ac-progress-fill"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
-            className="submit-btn"
+            className="ac-submit-btn"
             disabled={loading}
           >
-            {loading ? (
-              <span className="loading-text">
-                <span className="spinner"></span> Adding Course...
-              </span>
-            ) : (
-              "Add Course"
-            )}
+            {loading
+              ? uploadProgress > 0
+                ? `Uploading ${uploadProgress}%...`
+                : "Publishing..."
+              : "🚀 Publish Course"}
           </button>
 
         </form>
       </div>
     </div>
   );
-};
+}
 
 export default AddCourse;

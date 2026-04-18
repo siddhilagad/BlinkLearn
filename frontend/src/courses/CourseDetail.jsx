@@ -1,8 +1,135 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import { FaPlay, FaPause, FaExpand, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 import "./CourseDetail.css";
 
+// ===== Inline VideoPlayer =====
+function VideoPlayer({ videoUrl, thumbnail }) {
+  const videoRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+
+  const togglePlay = () => {
+    if (playing) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    setPlaying(!playing);
+  };
+
+  const handleTimeUpdate = () => {
+    const current = videoRef.current.currentTime;
+    const duration = videoRef.current.duration;
+    setProgress((current / duration) * 100);
+  };
+
+  const handleSeek = (e) => {
+    const newTime = (e.target.value / 100) * videoRef.current.duration;
+    videoRef.current.currentTime = newTime;
+    setProgress(e.target.value);
+  };
+
+  const toggleMute = () => {
+    videoRef.current.muted = !muted;
+    setMuted(!muted);
+  };
+
+  const handleFullscreen = () => {
+    if (videoRef.current.requestFullscreen) {
+      videoRef.current.requestFullscreen();
+    }
+  };
+
+  const handleEnded = () => {
+    setPlaying(false);
+    setProgress(0);
+  };
+
+  // If no video, show thumbnail or placeholder
+  if (!videoUrl) {
+    return (
+      <div className="cd-hero">
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt="Course Thumbnail"
+            className="cd-hero-img"
+          />
+        ) : (
+          <div className="cd-hero-placeholder">
+            <span>📚</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="cd-video-wrapper"
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => playing && setShowControls(false)}
+    >
+      {/* Thumbnail overlay before first play */}
+      {!playing && progress === 0 && thumbnail && (
+        <div className="cd-video-thumb-overlay" onClick={togglePlay}>
+          <img src={thumbnail} alt="Course Preview" />
+          <div className="cd-play-overlay-btn">
+            <FaPlay />
+          </div>
+        </div>
+      )}
+
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        onClick={togglePlay}
+        className="cd-video-element"
+        style={{
+          display: !playing && progress === 0 && thumbnail ? "none" : "block",
+        }}
+      />
+
+      {/* Controls */}
+      {showControls && (playing || progress > 0) && (
+        <div className="cd-video-controls">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={progress}
+            onChange={handleSeek}
+            className="cd-progress-range"
+          />
+          <div className="cd-controls-row">
+            <button onClick={togglePlay} className="cd-ctrl-btn">
+              {playing ? <FaPause /> : <FaPlay />}
+            </button>
+            <button onClick={toggleMute} className="cd-ctrl-btn">
+              {muted ? <FaVolumeMute /> : <FaVolumeUp />}
+            </button>
+            <span className="cd-ctrl-label">Course Preview</span>
+            <button
+              onClick={handleFullscreen}
+              className="cd-ctrl-btn"
+              style={{ marginLeft: "auto" }}
+            >
+              <FaExpand />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===== CourseDetail =====
 function CourseDetail() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -82,6 +209,14 @@ function CourseDetail() {
 
   if (!course) return null;
 
+  const thumbnailUrl = course.thumbnail
+    ? `http://localhost:5000/uploads/${course.thumbnail}`
+    : null;
+
+  const videoUrl = course.preview_video
+    ? `http://localhost:5000/uploads/${course.preview_video}`
+    : null;
+
   return (
     <div className="cd-page">
 
@@ -98,33 +233,23 @@ function CourseDetail() {
         {/* LEFT SECTION */}
         <div className="cd-left">
 
-          {/* Hero Image */}
-          <div className="cd-hero">
-            {course.thumbnail ? (
-              <img
-                src={`http://localhost:5000/uploads/${course.thumbnail}`}
-                alt={course.title}
-                className="cd-hero-img"
-              />
-            ) : (
-              <div className="cd-hero-placeholder">
-                <span>📚</span>
+          {/* ✅ Video Player or Thumbnail */}
+          <VideoPlayer videoUrl={videoUrl} thumbnail={thumbnailUrl} />
+
+          {/* Progress bar overlay (shown only when enrolled) */}
+          {enrolled && (
+            <div className="cd-progress-overlay">
+              <span className="cd-progress-label">
+                Course Progress: {progressPercent}%
+              </span>
+              <div className="cd-progress-bar-track">
+                <div
+                  className="cd-progress-bar-fill"
+                  style={{ width: progressPercent + "%" }}
+                />
               </div>
-            )}
-            {enrolled && (
-              <div className="cd-progress-overlay">
-                <span className="cd-progress-label">
-                  Course Progress: {progressPercent}%
-                </span>
-                <div className="cd-progress-bar-track">
-                  <div
-                    className="cd-progress-bar-fill"
-                    style={{ width: progressPercent + "%" }}
-                  ></div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Course Info */}
           <div className="cd-info-section">
@@ -155,7 +280,9 @@ function CourseDetail() {
             <p className="cd-section-label">About the Instructor</p>
             <div className="cd-instructor-row">
               <div className="cd-instructor-avatar">
-                {course.tutor_name ? course.tutor_name.charAt(0).toUpperCase() : "T"}
+                {course.tutor_name
+                  ? course.tutor_name.charAt(0).toUpperCase()
+                  : "T"}
               </div>
               <div className="cd-instructor-info">
                 <h3>{course.tutor_name || "Instructor"}</h3>
@@ -185,19 +312,26 @@ function CourseDetail() {
               {lessons.map((lesson, idx) => (
                 <div
                   key={lesson.id}
-                  className={lesson.completed ? "cd-lesson-item completed" : "cd-lesson-item"}
+                  className={
+                    lesson.completed
+                      ? "cd-lesson-item completed"
+                      : "cd-lesson-item"
+                  }
                 >
                   <div className="cd-lesson-icon">
-                    {lesson.completed
-                      ? <div className="cd-check-filled">✓</div>
-                      : <div className="cd-check-empty"></div>
-                    }
+                    {lesson.completed ? (
+                      <div className="cd-check-filled">✓</div>
+                    ) : (
+                      <div className="cd-check-empty"></div>
+                    )}
                   </div>
                   <div className="cd-lesson-info">
                     <span className="cd-lesson-title">
                       {idx + 1}. {lesson.title}
                     </span>
-                    <span className="cd-lesson-duration">{lesson.duration}</span>
+                    <span className="cd-lesson-duration">
+                      {lesson.duration}
+                    </span>
                   </div>
                 </div>
               ))}

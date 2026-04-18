@@ -7,13 +7,12 @@ import logo from "../assets/images/logo.png";
 
 function Navbar() {
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ Added
+  const location = useLocation();
   const [wishlistCount, setWishlistCount] = useState(0);
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // ✅ Helper function to check active route
   const isActive = (path) => location.pathname === path ? "active-link" : "";
 
   useEffect(() => {
@@ -59,6 +58,15 @@ function Navbar() {
     if (searchQuery.trim()) {
       navigate(`/courses?search=${searchQuery.trim()}`);
       setSearchQuery("");
+    }
+  };
+
+  // ✅ Block wishlist access if not logged in
+  const handleWishlistClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      alert("Please login to access your wishlist.");
+      navigate("/login");
     }
   };
 
@@ -146,9 +154,11 @@ function Navbar() {
 
       {/* RIGHT */}
       <div className="nav-right">
-        <Link to="/wishlist" className="icon-btn wishlist-icon">
+
+        {/* ✅ Wishlist icon — blocked for guests */}
+        <Link to="/wishlist" className="icon-btn wishlist-icon" onClick={handleWishlistClick}>
           <FaHeart />
-          {wishlistCount > 0 && (
+          {user && wishlistCount > 0 && (
             <span className="wishlist-count">{wishlistCount}</span>
           )}
         </Link>

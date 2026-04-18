@@ -5,21 +5,33 @@ import "./wishlist.css";
 
 function Wishlist() {
   const [wishlist, setWishlist] = useState([]);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
+
+    // ✅ If not logged in, redirect to login
+    if (!storedUser) {
+      navigate("/login");
+      return;
+    }
+
+    setUser(storedUser);
     const savedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
     setWishlist(savedWishlist);
   }, []);
 
   const removeFromWishlist = (e, courseId) => {
     e.stopPropagation();
-    // ✅ Fixed: use course_id not id
     const updated = wishlist.filter((course) => course.course_id !== courseId);
     setWishlist(updated);
     localStorage.setItem("wishlist", JSON.stringify(updated));
     window.dispatchEvent(new Event("wishlistUpdated"));
   };
+
+  // ✅ Don't render anything while checking auth
+  if (!user) return null;
 
   return (
     <div className="wishlist-page">
@@ -51,14 +63,13 @@ function Wishlist() {
                     (course.thumbnail.endsWith(".jpeg") ||
                       course.thumbnail.endsWith(".jpg") ||
                       course.thumbnail.endsWith(".png"))
-                      ? `http://localhost:5000/uploads/${course.thumbnail}` // ✅ Fixed URL
+                      ? `http://localhost:5000/uploads/${course.thumbnail}`
                       : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"
                   }
                   alt={course.title}
                 />
                 <span className="wl-level-badge">{course.level}</span>
 
-                {/* ✅ Heart remove button */}
                 <button
                   className="wl-heart-btn"
                   onClick={(e) => removeFromWishlist(e, course.course_id)}
@@ -69,8 +80,6 @@ function Wishlist() {
 
               {/* Body */}
               <div className="wl-body">
-
-                {/* Teacher */}
                 <div className="wl-teacher-row">
                   <div className="wl-avatar">
                     {course.teacher_name?.charAt(0).toUpperCase() || "T"}
@@ -83,21 +92,18 @@ function Wishlist() {
                 <h3 className="wl-title">{course.title}</h3>
                 <p className="wl-desc">{course.description}</p>
 
-                {/* Rating */}
                 <div className="wl-rating-row">
                   <FaStar className="wl-star" />
                   <span className="wl-rating-num">4.8</span>
                   <span className="wl-rating-count">(1,200)</span>
                 </div>
 
-                {/* Meta */}
                 <div className="wl-meta-row">
                   <span className="wl-meta"><FaUserFriends /> 12,453</span>
                   <span className="wl-meta"><FaClock /> 3h 20m</span>
                   <span className="wl-level-tag">{course.level}</span>
                 </div>
 
-                {/* Footer */}
                 <div className="wl-footer">
                   <span className="wl-price">
                     {course.price > 0 ? `₹ ${course.price}` : "Free"}
