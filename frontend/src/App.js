@@ -14,8 +14,10 @@ import CourseDetail from "./courses/CourseDetail";
 import ForgotPassword from "./login/forgotpassword";
 import ResetPassword from "./login/resetpassword";
 import Navbar from "./components/Navbar"; // ✅ Navbar import
+import Chat from "./chat/Chat";
+import CartPage from "./cart/CartPage";
+import CheckoutPage from "./Payment/CheckoutPage";
 
-// ✅ Navbar कोणत्या pages वर नको
 const NO_NAVBAR_ROUTES = ["/login", "/signup", "/forgot-password"];
 
 const AppLayout = () => {
@@ -42,6 +44,9 @@ const AppLayout = () => {
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="/cart" element={<CartPage />} />
+<Route path="/checkout/:courseId" element={<CheckoutPage />} />
       </Routes>
     </>
   );

@@ -673,3 +673,88 @@
   font-size: 13px;
   font-weight: 500;
 }
+/* ── Buy Now button ── */
+.cd-action-btn.buy {
+  width: 100%;
+  padding: 14px;
+  background: #5c6ef8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+.cd-action-btn.buy:hover {
+  background: #4455e6;
+}
+.cd-action-btn.buy:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Add to Cart button ── */
+.cd-action-btn.cart {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: #5c6ef8;
+  border: 2px solid #5c6ef8;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.cd-action-btn.cart:hover {
+  background: #f0f2ff;
+}
+.cd-action-btn.cart.cart-added {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #fff;
+}
+.cd-action-btn.cart:disabled {
+  cursor: not-allowed;
+}
+
+/* ── Free tag in price row ── */
+.cd-free-tag {
+  font-size: 24px;
+  font-weight: 700;
+  color: #22c55e;
+}
+/* Go to Cart link button */
+.cd-go-to-cart-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: #5c6ef8;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  margin-top: -4px;
+  margin-bottom: 4px;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.cd-go-to-cart-btn:hover {
+  color: #4455e6;
+}
+
+/* Cart added state */
+.cd-action-btn.cart.cart-added {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #fff;
+  cursor: default;
+}

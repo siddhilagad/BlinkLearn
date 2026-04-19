@@ -1,0 +1,73 @@
+.enrollment-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.enrollment-price {
+  margin-bottom: 1rem;
+}
+
+.price-free {
+  font-size: 28px;
+  font-weight: 600;
+  color: #22c55e;
+}
+
+.price-amount {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.btn-enroll,
+.btn-buy {
+  width: 100%;
+  padding: 14px;
+  background: #5c6ef8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+
+.btn-enroll:hover,
+.btn-buy:hover {
+  background: #4455e6;
+}
+
+.btn-cart {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: #5c6ef8;
+  border: 2px solid #5c6ef8;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.btn-cart:hover {
+  background: #f0f2ff;
+}
+
+.btn-cart--added {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #fff;
+}
+
+.enrollment-note {
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}

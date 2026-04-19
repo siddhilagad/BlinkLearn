@@ -3,19 +3,15 @@ import "./signup.css";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../api/api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import Navbar from "../components/Navbar"; // ✅ adjust path if needed
+import Navbar from "../components/Navbar";
 
 // ====== Validation Rules ======
-const passwordRules = [
-  (p) => p.length >= 8,
-  (p) => /[A-Z]/.test(p),
-  (p) => /[a-z]/.test(p),
-  (p) => /[0-9]/.test(p),
-  (p) => /[^A-Za-z0-9]/.test(p),
-];
 
-function isPasswordValid(password) {
-  return passwordRules.every((rule) => rule(password));
+// ✅ Strict email: requires local part, @, domain with dot and valid TLD (2+ chars)
+function isEmailValid(email) {
+  return /^[^\s@]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/.test(
+    email.trim()
+  );
 }
 
 // ✅ Only letters and spaces
@@ -23,9 +19,23 @@ function isFullNameValid(name) {
   return /^[A-Za-z\s]+$/.test(name.trim()) && name.trim().length > 0;
 }
 
-// ✅ Standard email format check
-function isEmailValid(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+// ✅ Returns the FIRST unmet password rule as a human-readable message, or null if all pass
+function getPasswordError(password) {
+  if (password.length < 8)
+    return "Password must be at least 8 characters long.";
+  if (!/[A-Z]/.test(password))
+    return "Please add at least 1 uppercase letter (A–Z).";
+  if (!/[a-z]/.test(password))
+    return "Please add at least 1 lowercase letter (a–z).";
+  if (!/[0-9]/.test(password))
+    return "Please add at least 1 number (0–9).";
+  if (!/[^A-Za-z0-9]/.test(password))
+    return "Please add at least 1 special character (e.g. @, #, !).";
+  return null; // all rules passed
+}
+
+function isPasswordValid(password) {
+  return getPasswordError(password) === null;
 }
 
 function Signup() {
@@ -70,13 +80,14 @@ function Signup() {
     }
 
     if (!isEmailValid(formData.email)) {
-      setErrorMsg("Please enter a valid email address.");
+      setErrorMsg("Please enter a valid email address (e.g. abc@gmail.com).");
       setEmailTouched(true);
       return;
     }
 
-    if (!isPasswordValid(formData.password)) {
-      setErrorMsg("Please enter a valid password.");
+    const pwdError = getPasswordError(formData.password);
+    if (pwdError) {
+      setErrorMsg(pwdError);
       setPasswordTouched(true);
       return;
     }
@@ -106,11 +117,12 @@ function Signup() {
   };
 
   const password = formData.password;
-  const isValid = isPasswordValid(password);
+  const passwordError = getPasswordError(password);
+  const isValid = passwordError === null;
 
   return (
     <>
-      <Navbar /> {/* ✅ Navbar added */}
+      <Navbar />
       <div className="signup-page">
         <div className="signup-wrapper">
 
@@ -184,9 +196,9 @@ function Signup() {
                 <div className="input-group">
                   <label>Email Address</label>
                   <input
-                    type="email"
+                    type="text"
                     name="email"
-                    placeholder="Enter your email"
+                    placeholder="e.g. abc@gmail.com"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -195,7 +207,7 @@ function Signup() {
                     <p className={isEmailValid(formData.email) ? "pwd-status valid" : "pwd-status invalid"}>
                       {isEmailValid(formData.email)
                         ? "✅ Valid email"
-                        : "❌ Enter a valid email (e.g. user@example.com)"}
+                        : "❌ Enter a valid email (e.g. abc@gmail.com)"}
                     </p>
                   )}
                 </div>
@@ -222,7 +234,7 @@ function Signup() {
                   </div>
                   {passwordTouched && password.length > 0 && (
                     <p className={isValid ? "pwd-status valid" : "pwd-status invalid"}>
-                      {isValid ? "✅ Valid password" : "❌ Invalid password"}
+                      {isValid ? "✅ Strong password" : `❌ ${passwordError}`}
                     </p>
                   )}
                 </div>

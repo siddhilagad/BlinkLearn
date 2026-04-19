@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FaHeart, FaShoppingCart, FaSearch } from "react-icons/fa";
+import { FaHeart, FaShoppingCart, FaSearch, FaFacebookMessenger } from "react-icons/fa";
 import axios from "axios";
 import "./Navbar.css";
 import logo from "../assets/images/logo.png";
@@ -9,6 +9,7 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [wishlistCount, setWishlistCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [user, setUser] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,11 +37,28 @@ function Navbar() {
     return () => window.removeEventListener("wishlistUpdated", updateCount);
   }, []);
 
+  // ✅ Listen for unread message count updates
+  useEffect(() => {
+    const updateUnread = () => {
+      const count = parseInt(localStorage.getItem("blinklearn_unread") || "0");
+      setUnreadCount(count);
+    };
+    updateUnread();
+    window.addEventListener("blinklearn:unreadChanged", updateUnread);
+    return () => window.removeEventListener("blinklearn:unreadChanged", updateUnread);
+  }, []);
+
+  // Clear unread when visiting chat
+  useEffect(() => {
+    if (location.pathname === "/chat") {
+      setUnreadCount(0);
+      localStorage.setItem("blinklearn_unread", "0");
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (!e.target.closest(".profile-menu")) {
-        setDropdownOpen(false);
-      }
+      if (!e.target.closest(".profile-menu")) setDropdownOpen(false);
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
@@ -61,11 +79,18 @@ function Navbar() {
     }
   };
 
-  // ✅ Block wishlist access if not logged in
   const handleWishlistClick = (e) => {
     if (!user) {
       e.preventDefault();
       alert("Please login to access your wishlist.");
+      navigate("/login");
+    }
+  };
+
+  const handleChatClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      alert("Please login to access chat.");
       navigate("/login");
     }
   };
@@ -111,7 +136,7 @@ function Navbar() {
         </Link>
       </div>
 
-      {/* CENTER — Search Bar */}
+      {/* CENTER — Search */}
       <form className="nav-search" onSubmit={handleSearch}>
         <FaSearch className="search-icon" />
         <input
@@ -124,30 +149,18 @@ function Navbar() {
 
       {/* CENTER — Nav Links */}
       <ul className="nav-links">
-        <li>
-          <Link to="/courses" className={isActive("/courses")}>Explore</Link>
-        </li>
+        <li><Link to="/courses" className={isActive("/courses")}>Explore</Link></li>
         {user && isTeacher && (
           <>
-            <li>
-              <Link to="/teacher-dashboard" className={isActive("/teacher-dashboard")}>Dashboard</Link>
-            </li>
-            <li>
-              <Link to="/my-courses" className={isActive("/my-courses")}>My Courses</Link>
-            </li>
-            <li>
-              <Link to="/add-course" className={isActive("/add-course")}>Add Course</Link>
-            </li>
+            <li><Link to="/teacher-dashboard" className={isActive("/teacher-dashboard")}>Dashboard</Link></li>
+            <li><Link to="/my-courses" className={isActive("/my-courses")}>My Courses</Link></li>
+            <li><Link to="/add-course" className={isActive("/add-course")}>Add Course</Link></li>
           </>
         )}
         {user && !isTeacher && (
           <>
-            <li>
-              <Link to="/student-dashboard" className={isActive("/student-dashboard")}>Dashboard</Link>
-            </li>
-            <li>
-              <Link to="/my-learning" className={isActive("/my-learning")}>My Learning</Link>
-            </li>
+            <li><Link to="/student-dashboard" className={isActive("/student-dashboard")}>Dashboard</Link></li>
+            <li><Link to="/my-learning" className={isActive("/my-learning")}>My Learning</Link></li>
           </>
         )}
       </ul>
@@ -155,7 +168,20 @@ function Navbar() {
       {/* RIGHT */}
       <div className="nav-right">
 
-        {/* ✅ Wishlist icon — blocked for guests */}
+        {/* ✅ Messenger Icon */}
+        <Link
+          to="/chat"
+          className="icon-btn messenger-icon"
+          onClick={handleChatClick}
+          title="Messages"
+        >
+          <FaFacebookMessenger />
+          {user && unreadCount > 0 && (
+            <span className="messenger-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>
+          )}
+        </Link>
+
+        {/* Wishlist */}
         <Link to="/wishlist" className="icon-btn wishlist-icon" onClick={handleWishlistClick}>
           <FaHeart />
           {user && wishlistCount > 0 && (
@@ -163,32 +189,23 @@ function Navbar() {
           )}
         </Link>
 
+        {/* Cart */}
         <Link to="/cart" className="icon-btn">
           <FaShoppingCart />
         </Link>
 
         {!user ? (
           <>
-            <Link to="/login">
-              <button className="nav-btn">Login</button>
-            </Link>
-            <Link to="/signup">
-              <button className="nav-btn signup-btn">Signup</button>
-            </Link>
+            <Link to="/login"><button className="nav-btn">Login</button></Link>
+            <Link to="/signup"><button className="nav-btn signup-btn">Signup</button></Link>
           </>
         ) : (
           <div className="profile-menu">
-            <button
-              className="profile-trigger"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-            >
+            <button className="profile-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
               <div className="profile-avatar">
                 {user.profilePhoto ? (
-                  <img
-                    src={user.profilePhoto}
-                    alt="profile"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-                  />
+                  <img src={user.profilePhoto} alt="profile"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                 ) : (
                   user.name?.charAt(0).toUpperCase()
                 )}
@@ -201,44 +218,28 @@ function Navbar() {
 
             {dropdownOpen && (
               <div className="profile-dropdown">
-                <Link
-                  to={isTeacher ? "/teacher-dashboard" : "/student-dashboard"}
-                  onClick={() => setDropdownOpen(false)}
-                >
+                <Link to={isTeacher ? "/teacher-dashboard" : "/student-dashboard"} onClick={() => setDropdownOpen(false)}>
                   🏠 Dashboard
                 </Link>
-
                 {isTeacher && (
                   <>
-                    <Link to="/my-courses" onClick={() => setDropdownOpen(false)}>
-                      📚 My Courses
-                    </Link>
-                    <Link to="/add-course" onClick={() => setDropdownOpen(false)}>
-                      ➕ Add Course
-                    </Link>
+                    <Link to="/my-courses" onClick={() => setDropdownOpen(false)}>📚 My Courses</Link>
+                    <Link to="/add-course" onClick={() => setDropdownOpen(false)}>➕ Add Course</Link>
                   </>
                 )}
-
                 {!isTeacher && (
-                  <Link to="/my-learning" onClick={() => setDropdownOpen(false)}>
-                    🎓 My Learning
-                  </Link>
+                  <Link to="/my-learning" onClick={() => setDropdownOpen(false)}>🎓 My Learning</Link>
                 )}
-
-                <Link to="/edit-profile" onClick={() => setDropdownOpen(false)}>
-                  ✏️ Edit Profile
-                </Link>
-
+                {/* ✅ Chat link in dropdown too */}
+                <Link to="/chat" onClick={() => setDropdownOpen(false)}>💬 Messages</Link>
+                <Link to="/edit-profile" onClick={() => setDropdownOpen(false)}>✏️ Edit Profile</Link>
                 <hr style={{ margin: "6px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
-
                 {!isTeacher ? (
                   <button onClick={handleSwitchToTeacher}>🎙️ Become an Instructor</button>
                 ) : (
                   <button onClick={handleSwitchToStudent}>👨‍🎓 Switch to Learning</button>
                 )}
-
                 <hr style={{ margin: "6px 0", border: "none", borderTop: "1px solid #f3f4f6" }} />
-
                 <button onClick={handleLogout}>🚪 Logout</button>
               </div>
             )}
