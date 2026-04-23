@@ -1,28 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./login.css";
 import { loginUser } from "../api/api";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import StudentOnboarding from "./studentOnboardingModal";
+import "./Loginmodel.css";
 
-const Login = () => {
+const LoginModal = ({ onClose, onSwitchToSignup }) => {
   const navigate = useNavigate();
 
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [data, setData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleChange = (e) => {
-    setData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setErrorMsg("");
   };
 
@@ -35,10 +28,7 @@ const Login = () => {
       const res = await loginUser(data.email, data.password);
       const user = res.user;
 
-      // Save user
       localStorage.setItem("blinklearn_user", JSON.stringify(user));
-
-      // Update navbar instantly
       window.dispatchEvent(new Event("blinklearn:userChanged"));
 
       const role = user.role?.toLowerCase().trim();
@@ -46,15 +36,13 @@ const Login = () => {
       if (role === "student") {
         const onboardingDone =
           localStorage.getItem("blinklearn_onboarding_done") === "true";
-
         if (!onboardingDone) {
-          // Show onboarding modal first
           setShowOnboarding(true);
           return;
         }
       }
 
-      // ✅ Both teacher & student → HOME PAGE
+      onClose();
       navigate("/");
 
     } catch (err) {
@@ -66,28 +54,31 @@ const Login = () => {
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
-    // After onboarding complete → go home
+    onClose();
     navigate("/");
   };
 
   return (
     <>
-      {/* ✅ Navbar काढला — App.jsx मधून येतो */}
-
       {showOnboarding && (
         <StudentOnboarding onClose={handleOnboardingClose} />
       )}
 
-      <div className="login-page">
-        <div className="login-wrapper">
+      {/* Backdrop */}
+      <div className="modal-overlay" onClick={onClose} />
 
-          {/* LEFT SIDE */}
+      {/* Modal — exact same as login page */}
+      <div className="modal-container">
+        <button className="modal-x-btn" onClick={onClose}>
+          <FaTimes />
+        </button>
+
+        <div className="login-wrapper modal-wrapper">
+
+          {/* LEFT SIDE — exact same */}
           <div className="login-left">
-
-            <Link to="/" className="logo-link">
-              <div className="brand-badge">
-                🎓 BlinkLearn
-              </div>
+            <Link to="/" className="logo-link" onClick={onClose}>
+              <div className="brand-badge">🎓 BlinkLearn</div>
             </Link>
 
             <h1>Welcome Back to BlinkLearn</h1>
@@ -105,7 +96,6 @@ const Login = () => {
                   <p>Access interactive courses and structured learning paths.</p>
                 </div>
               </div>
-
               <div className="feature-card">
                 <span>👨‍🏫</span>
                 <div>
@@ -113,7 +103,6 @@ const Login = () => {
                   <p>Create, manage, and track your teaching dashboard easily.</p>
                 </div>
               </div>
-
               <div className="feature-card">
                 <span>🚀</span>
                 <div>
@@ -122,12 +111,10 @@ const Login = () => {
                 </div>
               </div>
             </div>
-
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT SIDE — exact same */}
           <div className="login-right">
-
             <div className="login-card">
 
               <div className="login-header">
@@ -181,7 +168,7 @@ const Login = () => {
                   </label>
                   <span
                     className="forgot-link"
-                    onClick={() => navigate("/forgot-password")}
+                    onClick={() => { onClose(); navigate("/forgot-password"); }}
                   >
                     Forgot Password?
                   </span>
@@ -195,11 +182,10 @@ const Login = () => {
 
               <p className="signup-text">
                 Don't have an account?{" "}
-                <span onClick={() => navigate("/signup")}>Sign up</span>
+                <span onClick={onSwitchToSignup}>Sign up</span>
               </p>
 
             </div>
-
           </div>
 
         </div>
@@ -208,4 +194,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginModal;

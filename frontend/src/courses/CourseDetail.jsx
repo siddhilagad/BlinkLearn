@@ -162,7 +162,22 @@ function CourseDetail() {
         setLoading(false);
       }
     };
+
+    // ✅ Page load होताना enrolled आहे का check करा
+    const checkEnrollment = async () => {
+      if (!user) return;
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/check-enrollment/${user.user_id}/${courseId}`
+        );
+        setEnrolled(res.data.enrolled);
+      } catch (err) {
+        console.error("Enrollment check failed:", err);
+      }
+    };
+
     fetchCourse();
+    checkEnrollment();
   }, [courseId]);
 
   // ─── Check already enrolled ───────────────────────────────────────────────
@@ -196,8 +211,8 @@ function CourseDetail() {
         user_id: user.user_id,
         course_id: courseIdNum,
       });
-      setEnrolled(true);
-      alert("Enrolled successfully!");
+      setEnrolled(true); // ✅ State update करा
+      alert("Enrolled successfully! 🎉");
     } catch (err) {
       console.error("Enroll error:", err);
       alert(err.response?.data?.message || "Enrollment failed");
@@ -255,7 +270,7 @@ function CourseDetail() {
   };
 
   const isTeacher = user?.role?.toLowerCase() === "teacher";
-  const isOwner = isTeacher && user?.user_id === course?.tutor_id;
+  const isOwner = isTeacher && user?.user_id === course?.teacher_id;
 
   if (loading) {
     return (
