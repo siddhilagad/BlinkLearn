@@ -6,14 +6,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 40px;
+  padding: 0 32px;
   background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
   box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
   position: sticky;
   top: 0;
   z-index: 100;
   gap: 16px;
-  min-height: 68px;
+  height: 68px;
 }
 
 /* ── Logo ── */
@@ -28,27 +28,49 @@
   color: inherit;
 }
 
-.logo {
+/* Outer wrapper: icon + text side by side */
+.logo-wrapper {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 56px;
+  cursor: pointer;
+  transition: opacity 0.2s;
 }
 
-.logo-img {
-  height: 52px;
-  width: auto;
+.logo-wrapper:hover {
+  opacity: 0.88;
+}
+
+/* The SVG shield icon */
+.logo-icon {
   display: block;
-  object-fit: contain;
+  flex-shrink: 0;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
 }
 
-.logo-text {
-  font-size: 26px;
-  font-weight: 900;
+/* Text container: "Blink" + "Learn" stacked */
+.logo-text-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  gap: 1px;
+}
+
+.logo-blink {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.5px;
-  white-space: nowrap;
+}
+
+.logo-learn {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 14px;
+  font-weight: 400;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 2.5px;
 }
 
 /* ── Search Bar ── */
@@ -61,7 +83,7 @@
   padding: 8px 16px;
   gap: 8px;
   flex: 1;
-  max-width: 320px;
+  max-width: 300px;
   transition: background 0.2s, border 0.2s;
 }
 
@@ -115,7 +137,6 @@
   color: #ffffff;
 }
 
-/* ✅ Active link — higher specificity to override above rules */
 .nav-links li a.active-link {
   background: rgba(255, 255, 255, 0.25);
   color: #ffffff !important;
@@ -128,7 +149,7 @@
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -141,7 +162,7 @@
   color: rgba(255, 255, 255, 0.85);
   padding: 8px;
   border-radius: 10px;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
   text-decoration: none;
 }
 
@@ -170,8 +191,8 @@
 }
 
 .nav-btn {
-  padding: 8px 18px;
-  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  padding: 7px 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
   border-radius: 20px;
   font-size: 14px;
   cursor: pointer;
@@ -194,6 +215,36 @@
 
 .signup-btn:hover {
   background: #f5f3ff;
+}
+
+/* ── Messenger Icon ── */
+.messenger-icon {
+  position: relative;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 20px;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.messenger-icon:hover {
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.messenger-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
 }
 
 /* ── Profile Menu ── */
@@ -259,7 +310,7 @@
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: 200px;
+  width: 210px;
   background: white;
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -290,19 +341,21 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .nav-links {
+    display: none;
+  }
   .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 40px;
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    gap: 16px;
-    min-height: 78px;
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 16px;
+    gap: 10px;
   }
 
   .nav-search {
@@ -311,63 +364,25 @@
     flex: 1 1 100%;
   }
 
-  .nav-links {
+  .logo-blink {
+    font-size: 18px;
+  }
+
+  .logo-learn {
+    font-size: 12px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 33px;
+  }
+
+  .profile-name,
+  .profile-role {
     display: none;
   }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    height: 70px;
+  .profile-trigger {
+    padding: 5px;
   }
-
-  .logo-img {
-    height: 65px;
-    width: auto;
-    display: block;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
-  }
-
-  .logo-text {
-    font-size: 28px;
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: -0.5px;
-    white-space: nowrap;
-  }
-}
-
-
-
-
-/* Messenger Icon */
-.messenger-icon {
-  position: relative;
-  color: #6c63ff;
-  font-size: 20px;
-  transition: color 0.2s, transform 0.2s;
-}
-
-.messenger-icon:hover {
-  color: #a78bfa;
-  transform: scale(1.1);
-}
-
-.messenger-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #ef4444;
-  color: white;
-  font-size: 10px;
-  font-weight: 700;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid white;
 }

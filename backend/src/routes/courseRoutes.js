@@ -1,39 +1,52 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const db = require('../db');
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const mysql = require("mysql2");
 
-// ===== Ensure uploads folder exists =====
-const uploadsDir = path.join(__dirname, '../../uploads');
+// ================= DB CONNECTION =================
+// Option A: if you have a separate db.js file, use:
+// const db = require('../db');
+//
+// Option B: inline connection (matches your server.js style)
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "Sanika@123",
+  database: "blinklearn",
+});
+
+// ================= UPLOADS FOLDER =================
+const uploadsDir = path.join(__dirname, "../uploads"); // adjust if needed
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// ===== Multer Storage =====
+// ================= MULTER CONFIG =================
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueName + path.extname(file.originalname));
-  }
+    const uniqueName =
+      Date.now() +
+      "-" +
+      Math.round(Math.random() * 1e9) +
+      path.extname(file.originalname);
+    cb(null, uniqueName);
+  },
 });
 
-// ===== File Filter =====
 const fileFilter = (req, file, cb) => {
   const imageTypes = /jpeg|jpg|png|webp/;
   const videoTypes = /mp4|mov|webm|mkv/;
-  const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
+  const ext = path.extname(file.originalname).toLowerCase().replace(".", "");
 
-  if (file.fieldname === 'thumbnail' && imageTypes.test(ext)) {
+  if (file.fieldname === "thumbnail" && imageTypes.test(ext)) {
     cb(null, true);
-  } else if (file.fieldname === 'preview_video' && videoTypes.test(ext)) {
+  } else if (file.fieldname === "preview_video" && videoTypes.test(ext)) {
     cb(null, true);
   } else {
-    cb(new Error(`Invalid file type for ${file.fieldname}`));
+    cb(new Error(`Invalid file type for field: ${file.fieldname}`));
   }
 };
 
@@ -44,42 +57,53 @@ const upload = multer({
 });
 
 // ================= ADD COURSE =================
+// Full URL: POST http://localhost:5000/api/add-course
 router.post(
-  '/add-course',
+  "/add-course",
   upload.fields([
-    { name: 'thumbnail', maxCount: 1 },
-    { name: 'preview_video', maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+    { name: "preview_video", maxCount: 1 },
   ]),
   (req, res) => {
-    console.log("✅ /add-course hit");
+    console.log("✅ /api/add-course hit");
     console.log("Body:", req.body);
     console.log("Files:", req.files);
 
     const { title, description, price, level, category, teacher_id } = req.body;
 
-    if (!teacher_id) {
+    if (!teacher_id)
       return res.status(400).json({ message: "teacher_id is missing" });
-    }
-    if (!title || !description || !price || !level) {
+    if (!title || !description || price === undefined || !level)
       return res.status(400).json({ message: "All required fields must be filled" });
-    }
 
     const thumbnail = req.files?.thumbnail?.[0]?.filename || null;
     const preview_video = req.files?.preview_video?.[0]?.filename || null;
 
-    if (!thumbnail) {
+    if (!thumbnail)
       return res.status(400).json({ message: "Thumbnail is required" });
-    }
+
+    const coursePrice = parseFloat(price) || 0;
+    const courseType = coursePrice > 0 ? "paid" : "free";
 
     const sql = `
       INSERT INTO courses 
-        (teacher_id, title, description, price, level, category, thumbnail, preview_video)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (teacher_id, title, description, price, level, category, thumbnail, preview_video, type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     db.query(
       sql,
-      [teacher_id, title, description, price, level, category || null, thumbnail, preview_video],
+      [
+        teacher_id,
+        title,
+        description,
+        coursePrice,
+        level,
+        category || null,
+        thumbnail,
+        preview_video,
+        courseType,
+      ],
       (err, result) => {
         if (err) {
           console.error("❌ DB Error:", err);
@@ -98,22 +122,23 @@ router.post(
 );
 
 // ================= GET ALL COURSES =================
-router.get('/courses', (req, res) => {
+// Full URL: GET http://localhost:5000/api/courses
+router.get("/courses", (req, res) => {
   const { search } = req.query;
 
   let sql = `
-    SELECT c.*, u.fullname AS tutor_name
+    SELECT c.*, u.name AS tutor_name
     FROM courses c
     LEFT JOIN users u ON c.teacher_id = u.user_id
   `;
   const params = [];
 
   if (search) {
-    sql += ' WHERE c.title LIKE ? OR c.description LIKE ?';
+    sql += " WHERE c.title LIKE ? OR c.description LIKE ?";
     params.push(`%${search}%`, `%${search}%`);
   }
 
-  sql += ' ORDER BY c.created_at DESC';
+  sql += " ORDER BY c.course_id DESC";
 
   db.query(sql, params, (err, results) => {
     if (err) {
@@ -125,11 +150,12 @@ router.get('/courses', (req, res) => {
 });
 
 // ================= GET SINGLE COURSE =================
-router.get('/course/:courseId', (req, res) => {
+// Full URL: GET http://localhost:5000/api/course/:courseId
+router.get("/course/:courseId", (req, res) => {
   const { courseId } = req.params;
 
   const sql = `
-    SELECT c.*, u.fullname AS tutor_name
+    SELECT c.*, u.name AS tutor_name, u.email AS teacher_email
     FROM courses c
     LEFT JOIN users u ON c.teacher_id = u.user_id
     WHERE c.course_id = ?
@@ -140,52 +166,72 @@ router.get('/course/:courseId', (req, res) => {
       console.error("Fetch course error:", err);
       return res.status(500).json({ message: "Failed to fetch course" });
     }
-    if (results.length === 0) {
+    if (results.length === 0)
       return res.status(404).json({ message: "Course not found" });
-    }
     res.json(results[0]);
   });
 });
 
+// ================= GET TEACHER COURSES =================
+// Full URL: GET http://localhost:5000/api/teacher-courses/:id
+router.get("/teacher-courses/:id", (req, res) => {
+  db.query(
+    "SELECT * FROM courses WHERE teacher_id = ? ORDER BY course_id DESC",
+    [req.params.id],
+    (err, result) => {
+      if (err)
+        return res.status(500).json({ message: "Error fetching teacher courses" });
+      res.json(result);
+    }
+  );
+});
+
 // ================= EDIT COURSE =================
+// Full URL: PUT http://localhost:5000/api/edit-course/:courseId
 router.put(
-  '/edit-course/:courseId',
+  "/edit-course/:courseId",
   upload.fields([
-    { name: 'thumbnail', maxCount: 1 },
-    { name: 'preview_video', maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+    { name: "preview_video", maxCount: 1 },
   ]),
   (req, res) => {
     const { courseId } = req.params;
     const { title, description, price, level, category } = req.body;
 
     db.query(
-      'SELECT thumbnail, preview_video FROM courses WHERE course_id = ?',
+      "SELECT thumbnail, preview_video FROM courses WHERE course_id = ?",
       [courseId],
       (err, existing) => {
-        if (err || existing.length === 0) {
+        if (err || existing.length === 0)
           return res.status(404).json({ message: "Course not found" });
-        }
 
         const thumbnail =
           req.files?.thumbnail?.[0]?.filename || existing[0].thumbnail;
         const preview_video =
           req.files?.preview_video?.[0]?.filename || existing[0].preview_video;
 
-        const sql = `
-          UPDATE courses 
-          SET title=?, description=?, price=?, level=?, category=?,
-              thumbnail=?, preview_video=?
-          WHERE course_id=?
-        `;
+        const coursePrice = parseFloat(price) || 0;
+        const courseType = coursePrice > 0 ? "paid" : "free";
 
         db.query(
-          sql,
-          [title, description, price, level, category, thumbnail, preview_video, courseId],
+          `UPDATE courses 
+           SET title=?, description=?, price=?, level=?, category=?,
+               thumbnail=?, preview_video=?, type=?
+           WHERE course_id=?`,
+          [
+            title,
+            description,
+            coursePrice,
+            level,
+            category || null,
+            thumbnail,
+            preview_video,
+            courseType,
+            courseId,
+          ],
           (err2) => {
-            if (err2) {
-              console.error("Edit course error:", err2);
+            if (err2)
               return res.status(500).json({ message: "Failed to update course" });
-            }
             res.json({ message: "Course updated successfully", thumbnail, preview_video });
           }
         );
@@ -195,37 +241,42 @@ router.put(
 );
 
 // ================= DELETE COURSE =================
-router.delete('/delete-course/:courseId', (req, res) => {
+// Full URL: DELETE http://localhost:5000/api/delete-course/:courseId
+router.delete("/delete-course/:courseId", (req, res) => {
   const { courseId } = req.params;
-  db.query('DELETE FROM courses WHERE course_id = ?', [courseId], (err) => {
-    if (err) {
-      return res.status(500).json({ message: "Failed to delete course" });
+  db.query(
+    "DELETE FROM courses WHERE course_id = ?",
+    [courseId],
+    (err) => {
+      if (err)
+        return res.status(500).json({ message: "Failed to delete course" });
+      res.json({ message: "Course deleted successfully" });
     }
-    res.json({ message: "Course deleted successfully" });
-  });
+  );
 });
 
 // ================= ENROLL =================
-router.post('/enroll', (req, res) => {
+// Full URL: POST http://localhost:5000/api/enroll
+router.post("/enroll", (req, res) => {
   const { user_id, course_id } = req.body;
 
-  if (!user_id || !course_id) {
+  if (!user_id || !course_id)
     return res.status(400).json({ message: "user_id and course_id are required" });
-  }
 
   db.query(
-    'SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?',
+    "SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?",
     [user_id, course_id],
     (err, existing) => {
       if (err) return res.status(500).json({ message: "DB error" });
-      if (existing.length > 0) {
+      if (existing.length > 0)
         return res.status(400).json({ message: "Already enrolled" });
-      }
+
       db.query(
-        'INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)',
+        "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)",
         [user_id, course_id],
         (err2) => {
-          if (err2) return res.status(500).json({ message: "Enrollment failed" });
+          if (err2)
+            return res.status(500).json({ message: "Enrollment failed" });
           res.json({ message: "Enrolled successfully" });
         }
       );
@@ -233,37 +284,14 @@ router.post('/enroll', (req, res) => {
   );
 });
 
-// ================= SWITCH ROLE =================
-router.put('/switch-role/:userId', (req, res) => {
-  const { userId } = req.params;
-  const { role } = req.body;
-
-  if (!['student', 'teacher'].includes(role)) {
-    return res.status(400).json({ message: 'Invalid role' });
-  }
-
-  const sql =
-    role === 'teacher'
-      ? 'UPDATE users SET role = ?, is_instructor = 1 WHERE user_id = ?'
-      : 'UPDATE users SET role = ? WHERE user_id = ?';
-
-  db.query(sql, [role, userId], (err) => {
-    if (err) return res.status(500).json({ message: 'Failed to switch role' });
-    res.json({ message: 'Role switched successfully', role });
-  });
-});
-
-// ================= ERROR HANDLER (multer) =================
+// ================= MULTER ERROR HANDLER =================
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ message: 'File too large. Max 500MB allowed.' });
-    }
+    if (err.code === "LIMIT_FILE_SIZE")
+      return res.status(400).json({ message: "File too large. Max 500MB allowed." });
     return res.status(400).json({ message: err.message });
   }
-  if (err) {
-    return res.status(400).json({ message: err.message });
-  }
+  if (err) return res.status(400).json({ message: err.message });
   next();
 });
 

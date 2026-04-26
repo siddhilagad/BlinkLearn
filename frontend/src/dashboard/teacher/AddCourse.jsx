@@ -1,335 +1,660 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useRef } from "react";
 import "./AddCourse.css";
+import { addCourse } from "../../api/api"; // ✅ import from central api.js
 
-function AddCourse() {
-  const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("blinklearn_user"));
+// ─── Helpers ─────────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2, 9);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    price: "",
-    level: "Beginner",
-    category: "",
-  });
+const makeLesson = () => ({
+  id: uid(),
+  title: "",
+  type: "video",
+  duration: "",
+  videoFile: null,
+  videoName: "",
+});
 
-  const [thumbnail, setThumbnail] = useState(null);
-  const [previewVideo, setPreviewVideo] = useState(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const [videoPreview, setVideoPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-  const [uploadProgress, setUploadProgress] = useState(0);
+const makeSection = () => ({
+  id: uid(),
+  title: "",
+  open: true,
+  lessons: [makeLesson()],
+});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrorMsg("");
+// ─── Icons (inline SVG) ───────────────────────────────────────────
+const Icon = {
+  drag:    () => <span title="Drag">⠿</span>,
+  chevron: () => <span>▾</span>,
+  add:     () => <span style={{ fontSize: 16 }}>＋</span>,
+  trash:   () => <span>🗑</span>,
+  video:   () => <span>🎬</span>,
+  article: () => <span>📄</span>,
+  quiz:    () => <span>🧩</span>,
+  upload:  () => <span>⬆</span>,
+  check:   () => <span style={{ color: "#22c55e" }}>✓</span>,
+  rocket:  () => <span>🚀</span>,
+};
+
+const lessonTypeIcon = (type) => {
+  if (type === "video")   return <Icon.video />;
+  if (type === "article") return <Icon.article />;
+  return <Icon.quiz />;
+};
+
+// ─── Component ───────────────────────────────────────────────────
+export default function AddCourse() {
+  // Basic info
+  const [title, setTitle]          = useState("");
+  const [description, setDesc]     = useState("");
+  const [price, setPrice]          = useState("");
+  const [level, setLevel]          = useState("Beginner");
+  const [category, setCategory]    = useState("");
+  const [thumbnail, setThumbnail]  = useState(null);
+  const [previewVideo, setPreview] = useState(null);
+
+  // Course content sections
+  const [sections, setSections]    = useState([makeSection()]);
+
+  // Active step
+  const [step, setStep]            = useState(1);
+
+  // Loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const thumbRef   = useRef();
+  const previewRef = useRef();
+
+  // ── Stats ─────────────────────────────────────────────────────
+  const totalLessons = sections.reduce((a, s) => a + s.lessons.length, 0);
+  const totalVideos  = sections.reduce(
+    (a, s) => a + s.lessons.filter((l) => l.type === "video").length,
+    0
+  );
+
+  // ── Section operations ────────────────────────────────────────
+  const addSection = () =>
+    setSections((prev) => [...prev, makeSection()]);
+
+  const removeSection = (sid) =>
+    setSections((prev) => prev.filter((s) => s.id !== sid));
+
+  const toggleSection = (sid) =>
+    setSections((prev) =>
+      prev.map((s) => (s.id === sid ? { ...s, open: !s.open } : s))
+    );
+
+  const updateSectionTitle = (sid, val) =>
+    setSections((prev) =>
+      prev.map((s) => (s.id === sid ? { ...s, title: val } : s))
+    );
+
+  // ── Lesson operations ─────────────────────────────────────────
+  const addLesson = (sid) =>
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sid ? { ...s, lessons: [...s.lessons, makeLesson()] } : s
+      )
+    );
+
+  const removeLesson = (sid, lid) =>
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sid
+          ? { ...s, lessons: s.lessons.filter((l) => l.id !== lid) }
+          : s
+      )
+    );
+
+  const updateLesson = (sid, lid, field, val) =>
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sid
+          ? {
+              ...s,
+              lessons: s.lessons.map((l) =>
+                l.id === lid ? { ...l, [field]: val } : l
+              ),
+            }
+          : s
+      )
+    );
+
+  const handleLessonVideo = (sid, lid, file) => {
+    if (!file) return;
+    setSections((prev) =>
+      prev.map((s) =>
+        s.id === sid
+          ? {
+              ...s,
+              lessons: s.lessons.map((l) =>
+                l.id === lid
+                  ? { ...l, videoFile: file, videoName: file.name }
+                  : l
+              ),
+            }
+          : s
+      )
+    );
   };
 
-  const handleThumbnail = (e) => {
-    const file = e.target.files[0];
+  // ── Thumbnail / preview ───────────────────────────────────────
+  const handleThumb = (file) => {
     if (!file) return;
-    setThumbnail(file);
-    setThumbnailPreview(URL.createObjectURL(file));
+    setThumbnail({ file, url: URL.createObjectURL(file) });
   };
 
-  const handleVideo = (e) => {
-    const file = e.target.files[0];
+  const handlePreview = (file) => {
     if (!file) return;
+    setPreview({ file, name: file.name });
+  };
 
-    // Validate size — max 500MB
-    if (file.size > 500 * 1024 * 1024) {
-      setErrorMsg("Video must be under 500MB.");
+  // ── Submit ────────────────────────────────────────────────────
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // ✅ Get logged-in user from localStorage
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user?.user_id) {
+      alert("Please log in first.");
       return;
     }
 
-    setPreviewVideo(file);
-    setVideoPreview(URL.createObjectURL(file));
-    setErrorMsg("");
-  };
+    // ✅ Basic validation
+    if (!title || !description || price === "") {
+      alert("Please fill in all required fields.");
+      setStep(1);
+      return;
+    }
+    if (!thumbnail?.file) {
+      alert("Please upload a course thumbnail.");
+      setStep(2);
+      return;
+    }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg("");
-    setSuccessMsg("");
+    // ✅ Build FormData with field names matching the backend exactly
+    const formData = new FormData();
+    formData.append("teacher_id", user.user_id);   // required by backend
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("price", price);
+    formData.append("level", level);
+    formData.append("category", category);
+    formData.append("thumbnail", thumbnail.file);   // field name: "thumbnail"
 
-    if (!formData.title.trim()) return setErrorMsg("Title is required.");
-    if (!formData.description.trim()) return setErrorMsg("Description is required.");
-    if (!formData.price) return setErrorMsg("Price is required.");
-    if (!thumbnail) return setErrorMsg("Please upload a course thumbnail.");
+    if (previewVideo?.file) {
+      formData.append("preview_video", previewVideo.file); // field name: "preview_video"
+    }
+
+    // Attach lesson videos (optional, for future backend support)
+    sections.forEach((section) => {
+      section.lessons.forEach((lesson) => {
+        if (lesson.videoFile) {
+          formData.append("lessonVideos", lesson.videoFile);
+        }
+      });
+    });
 
     try {
-      setLoading(true);
-      setUploadProgress(0);
+      setIsSubmitting(true);
+      const data = await addCourse(formData); // ✅ uses api.js → POST /api/add-course
+      console.log("Course created:", data);
+      alert("✅ Course published successfully!");
 
-      const data = new FormData();
-      data.append("teacher_id", user.user_id);
-      data.append("title", formData.title.trim());
-      data.append("description", formData.description.trim());
-      data.append("price", formData.price);
-      data.append("level", formData.level);
-      data.append("category", formData.category.trim());
-      data.append("thumbnail", thumbnail);
-      if (previewVideo) {
-        data.append("preview_video", previewVideo);
-      }
-
-      await axios.post("http://localhost:5000/add-course", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress(percent);
-        },
-      });
-
-      setSuccessMsg("Course added successfully! 🎉");
-      setTimeout(() => navigate("/my-courses"), 1500);
-
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(
-        err.response?.data?.message || "Failed to add course. Please try again."
-      );
+      // Reset form
+      setTitle("");
+      setDesc("");
+      setPrice("");
+      setLevel("Beginner");
+      setCategory("");
+      setThumbnail(null);
+      setPreview(null);
+      setSections([makeSection()]);
+      setStep(1);
+    } catch (error) {
+      console.error("Submit error:", error);
+      const msg = error?.response?.data?.message || "Failed to publish course.";
+      alert(`❌ ${msg}`);
     } finally {
-      setLoading(false);
-      setUploadProgress(0);
+      setIsSubmitting(false);
     }
   };
 
+  // ── JSX ───────────────────────────────────────────────────────
   return (
     <div className="ac-page">
-      <div className="ac-container">
 
-        {/* Header */}
-        <div className="ac-header">
-          <button className="ac-back-btn" onClick={() => navigate(-1)}>
-            ← Back
-          </button>
-          <div>
-            <h1 className="ac-title">Add New Course</h1>
-            <p className="ac-subtitle">Fill in the details to publish your course</p>
+      {/* ── Header ── */}
+      <div className="ac-header">
+        <div className="ac-header-inner">
+          <div className="ac-header-tag">✏️ Teacher Studio</div>
+          <h1>Create a New Course</h1>
+          <p>Fill in the details and build your curriculum topic by topic</p>
+        </div>
+
+        {/* Steps */}
+        <div className="ac-steps">
+          {[
+            { n: 1, label: "Basic Info" },
+            { n: 2, label: "Media" },
+            { n: 3, label: "Curriculum" },
+          ].map((s) => (
+            <div
+              key={s.n}
+              className={`ac-step${step === s.n ? " active" : ""}`}
+              onClick={() => setStep(s.n)}
+            >
+              <div className="ac-step-num">{s.n}</div>
+              <div>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <form className="ac-body" onSubmit={handleSubmit}>
+
+        {/* ════ STEP 1 — Basic Info ════ */}
+        {step === 1 && (
+          <>
+            <div className="ac-card">
+              <div className="ac-card-head">
+                <div className="ac-card-title">
+                  <div className="ac-card-title-icon">📝</div>
+                  Course Details
+                </div>
+              </div>
+              <div className="ac-card-body">
+                <div className="ac-row">
+
+                  <div className="ac-field full">
+                    <label className="ac-label">
+                      Course Title <span className="req">*</span>
+                    </label>
+                    <input
+                      className="ac-input"
+                      placeholder="e.g. Complete Node.js Course"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="ac-field full">
+                    <label className="ac-label">
+                      Description <span className="req">*</span>
+                    </label>
+                    <textarea
+                      className="ac-textarea"
+                      placeholder="What will students learn in this course?"
+                      value={description}
+                      onChange={(e) => setDesc(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="ac-field">
+                    <label className="ac-label">
+                      Price (₹) <span className="req">*</span>
+                    </label>
+                    <input
+                      className="ac-input"
+                      placeholder="0 for free"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      type="number"
+                      min="0"
+                      required
+                    />
+                  </div>
+
+                  <div className="ac-field">
+                    <label className="ac-label">Level</label>
+                    <select
+                      className="ac-select"
+                      value={level}
+                      onChange={(e) => setLevel(e.target.value)}
+                    >
+                      <option>Beginner</option>
+                      <option>Intermediate</option>
+                      <option>Advanced</option>
+                      <option>All Levels</option>
+                    </select>
+                  </div>
+
+                  <div className="ac-field full">
+                    <label className="ac-label">Category</label>
+                    <input
+                      className="ac-input"
+                      placeholder="e.g. Web Development, Data Science"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                    />
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="ac-btn primary"
+                onClick={() => setStep(2)}
+              >
+                Next: Media →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ════ STEP 2 — Media ════ */}
+        {step === 2 && (
+          <>
+            <div className="ac-card">
+              <div className="ac-card-head">
+                <div className="ac-card-title">
+                  <div className="ac-card-title-icon">🖼️</div>
+                  Course Thumbnail <span className="req">*</span>
+                </div>
+              </div>
+              <div className="ac-card-body">
+                <div className="ac-upload-zone" onClick={() => thumbRef.current.click()}>
+                  <input
+                    ref={thumbRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    style={{ display: "none" }}
+                    onChange={(e) => handleThumb(e.target.files[0])}
+                  />
+                  {thumbnail ? (
+                    <div className="ac-upload-preview">
+                      <img
+                        className="ac-upload-preview-thumb"
+                        src={thumbnail.url}
+                        alt="thumb"
+                      />
+                      <span className="ac-upload-preview-name">
+                        {thumbnail.file.name}
+                      </span>
+                      <button
+                        type="button"
+                        className="ac-upload-preview-remove"
+                        onClick={(e) => { e.stopPropagation(); setThumbnail(null); }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="ac-upload-icon">🖼️</div>
+                      <div className="ac-upload-title">Click to upload thumbnail</div>
+                      <div className="ac-upload-hint">JPG, PNG, WEBP · Max 5MB</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="ac-card">
+              <div className="ac-card-head">
+                <div className="ac-card-title">
+                  <div className="ac-card-title-icon">🎬</div>
+                  Preview Video{" "}
+                  <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-m)" }}>
+                    (Optional)
+                  </span>
+                </div>
+              </div>
+              <div className="ac-card-body">
+                <div className="ac-upload-zone" onClick={() => previewRef.current.click()}>
+                  <input
+                    ref={previewRef}
+                    type="file"
+                    accept="video/mp4,video/mov,video/webm"
+                    style={{ display: "none" }}
+                    onChange={(e) => handlePreview(e.target.files[0])}
+                  />
+                  {previewVideo ? (
+                    <div className="ac-upload-preview">
+                      <span style={{ fontSize: 28 }}>🎬</span>
+                      <span className="ac-upload-preview-name">{previewVideo.name}</span>
+                      <button
+                        type="button"
+                        className="ac-upload-preview-remove"
+                        onClick={(e) => { e.stopPropagation(); setPreview(null); }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="ac-upload-icon">🎬</div>
+                      <div className="ac-upload-title">Click to upload preview video</div>
+                      <div className="ac-upload-hint">MP4, MOV, WEBM · Max 500MB</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <button type="button" className="ac-btn ghost" onClick={() => setStep(1)}>
+                ← Back
+              </button>
+              <button type="button" className="ac-btn primary" onClick={() => setStep(3)}>
+                Next: Curriculum →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ════ STEP 3 — Curriculum ════ */}
+        {step === 3 && (
+          <>
+            <div className="ac-card">
+              <div className="ac-card-head">
+                <div className="ac-card-title">
+                  <div className="ac-card-title-icon">📚</div>
+                  Course Curriculum
+                </div>
+              </div>
+              <div className="ac-card-body">
+
+                {/* Summary bar */}
+                <div className="ac-summary-bar">
+                  <div className="ac-summary-item">
+                    📦 <strong>{sections.length}</strong>
+                    <span>Sections</span>
+                  </div>
+                  <div className="ac-summary-item">
+                    📋 <strong>{totalLessons}</strong>
+                    <span>Lessons</span>
+                  </div>
+                  <div className="ac-summary-item">
+                    🎬 <strong>{totalVideos}</strong>
+                    <span>Videos</span>
+                  </div>
+                </div>
+
+                {/* Sections */}
+                {sections.map((section, si) => (
+                  <div
+                    key={section.id}
+                    className={`ac-section${section.open ? " open" : ""}`}
+                  >
+                    <div className="ac-section-head">
+                      <span className="ac-section-drag" title="Drag to reorder">
+                        <Icon.drag />
+                      </span>
+                      <div className="ac-section-num">{si + 1}</div>
+                      <input
+                        className="ac-section-title-input"
+                        placeholder={`Section ${si + 1}: e.g. Introduction to the Course`}
+                        value={section.title}
+                        onChange={(e) => updateSectionTitle(section.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="ac-section-actions">
+                        <button
+                          type="button"
+                          className="ac-icon-btn danger"
+                          title="Remove section"
+                          onClick={(e) => { e.stopPropagation(); removeSection(section.id); }}
+                        >
+                          <Icon.trash />
+                        </button>
+                        <button
+                          type="button"
+                          className="ac-icon-btn"
+                          title="Toggle"
+                          onClick={() => toggleSection(section.id)}
+                        >
+                          <span className="ac-chevron"><Icon.chevron /></span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {section.open && (
+                      <div className="ac-lessons">
+                        {section.lessons.map((lesson, li) => (
+                          <div key={lesson.id} className="ac-lesson-item">
+                            <span className="ac-lesson-drag"><Icon.drag /></span>
+
+                            <div className={`ac-lesson-type-icon ${lesson.type}`}>
+                              {lessonTypeIcon(lesson.type)}
+                            </div>
+
+                            <div className="ac-lesson-fields">
+                              <input
+                                className="ac-lesson-name-input"
+                                placeholder={`Lesson ${li + 1}: e.g. What is React?`}
+                                value={lesson.title}
+                                onChange={(e) =>
+                                  updateLesson(section.id, lesson.id, "title", e.target.value)
+                                }
+                              />
+
+                              <select
+                                className="ac-lesson-type-select"
+                                value={lesson.type}
+                                onChange={(e) =>
+                                  updateLesson(section.id, lesson.id, "type", e.target.value)
+                                }
+                              >
+                                <option value="video">🎬 Video</option>
+                                <option value="article">📄 Article</option>
+                                <option value="quiz">🧩 Quiz</option>
+                              </select>
+
+                              <input
+                                className="ac-lesson-duration-input"
+                                placeholder="0:00"
+                                value={lesson.duration}
+                                onChange={(e) =>
+                                  updateLesson(section.id, lesson.id, "duration", e.target.value)
+                                }
+                                title="Duration (e.g. 5:30)"
+                              />
+
+                              {lesson.type === "video" && (
+                                lesson.videoName ? (
+                                  <div className="ac-lesson-video-uploaded">
+                                    <Icon.check />
+                                    <span title={lesson.videoName}>{lesson.videoName}</span>
+                                    <button
+                                      type="button"
+                                      style={{
+                                        background: "none", border: "none",
+                                        cursor: "pointer", color: "#ef4444",
+                                        fontSize: 13, padding: "0 2px",
+                                      }}
+                                      onClick={() => {
+                                        updateLesson(section.id, lesson.id, "videoFile", null);
+                                        updateLesson(section.id, lesson.id, "videoName", "");
+                                      }}
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label className="ac-lesson-video-upload">
+                                    <input
+                                      type="file"
+                                      accept="video/mp4,video/mov,video/webm"
+                                      onChange={(e) =>
+                                        handleLessonVideo(section.id, lesson.id, e.target.files[0])
+                                      }
+                                    />
+                                    <Icon.upload /> Upload Video
+                                  </label>
+                                )
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              className="ac-icon-btn danger"
+                              title="Remove lesson"
+                              onClick={() => removeLesson(section.id, lesson.id)}
+                            >
+                              <Icon.trash />
+                            </button>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          className="ac-add-lesson-btn"
+                          onClick={() => addLesson(section.id)}
+                        >
+                          <Icon.add /> Add Lesson to this Section
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  className="ac-add-section-btn"
+                  onClick={addSection}
+                >
+                  <Icon.add /> Add New Section
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 80 }}>
+              <button type="button" className="ac-btn ghost" onClick={() => setStep(2)}>
+                ← Back to Media
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Sticky submit bar ── */}
+        <div className="ac-submit-bar">
+          <div className="ac-submit-info">
+            <strong>{sections.length}</strong> sections ·{" "}
+            <strong>{totalLessons}</strong> lessons ·{" "}
+            <strong>{totalVideos}</strong> videos uploaded
+          </div>
+          <div className="ac-submit-actions">
+            <button type="button" className="ac-btn ghost">
+              Save Draft
+            </button>
+            <button
+              type="submit"
+              className="ac-btn primary"
+              disabled={isSubmitting}
+            >
+              <Icon.rocket />
+              {isSubmitting ? " Publishing..." : " Publish Course"}
+            </button>
           </div>
         </div>
 
-        {errorMsg && <div className="ac-alert error">{errorMsg}</div>}
-        {successMsg && <div className="ac-alert success">{successMsg}</div>}
-
-        <form onSubmit={handleSubmit} className="ac-form">
-
-          <div className="ac-two-col">
-
-            {/* LEFT — Form Fields */}
-            <div className="ac-left">
-
-              <div className="ac-field">
-                <label>Course Title <span>*</span></label>
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="e.g. Complete Node.js Course"
-                  value={formData.title}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                />
-              </div>
-
-              <div className="ac-field">
-                <label>Description <span>*</span></label>
-                <textarea
-                  name="description"
-                  placeholder="What will students learn in this course?"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={5}
-                  disabled={loading}
-                  required
-                />
-              </div>
-
-              <div className="ac-row">
-                <div className="ac-field">
-                  <label>Price (₹) <span>*</span></label>
-                  <input
-                    type="number"
-                    name="price"
-                    placeholder="0 for free"
-                    value={formData.price}
-                    onChange={handleChange}
-                    min="0"
-                    disabled={loading}
-                    required
-                  />
-                </div>
-
-                <div className="ac-field">
-                  <label>Level</label>
-                  <select
-                    name="level"
-                    value={formData.level}
-                    onChange={handleChange}
-                    disabled={loading}
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="ac-field">
-                <label>Category</label>
-                <input
-                  type="text"
-                  name="category"
-                  placeholder="e.g. Web Development, Data Science"
-                  value={formData.category}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-              </div>
-
-            </div>
-
-            {/* RIGHT — Upload Section */}
-            <div className="ac-right">
-
-              {/* Thumbnail Upload */}
-              <div className="ac-field">
-                <label>Course Thumbnail <span>*</span></label>
-                <div
-                  className="ac-upload-box"
-                  onClick={() => document.getElementById("thumbnailInput").click()}
-                >
-                  {thumbnailPreview ? (
-                    <img
-                      src={thumbnailPreview}
-                      alt="Thumbnail Preview"
-                      className="ac-thumb-preview"
-                    />
-                  ) : (
-                    <div className="ac-upload-placeholder">
-                      <span className="ac-upload-icon">🖼️</span>
-                      <p>Click to upload thumbnail</p>
-                      <small>JPG, PNG, WEBP • Max 5MB</small>
-                    </div>
-                  )}
-                </div>
-                <input
-                  id="thumbnailInput"
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={handleThumbnail}
-                  disabled={loading}
-                  style={{ display: "none" }}
-                />
-                {thumbnailPreview && (
-                  <button
-                    type="button"
-                    className="ac-remove-btn"
-                    onClick={() => {
-                      setThumbnail(null);
-                      setThumbnailPreview(null);
-                    }}
-                  >
-                    ✕ Remove Thumbnail
-                  </button>
-                )}
-              </div>
-
-              {/* ✅ Video Upload */}
-              <div className="ac-field">
-                <label>Preview Video <span className="ac-optional">(Optional)</span></label>
-                <div
-                  className="ac-upload-box video-box"
-                  onClick={() =>
-                    !videoPreview &&
-                    document.getElementById("videoInput").click()
-                  }
-                >
-                  {videoPreview ? (
-                    <video
-                      src={videoPreview}
-                      controls
-                      className="ac-video-preview"
-                    />
-                  ) : (
-                    <div className="ac-upload-placeholder">
-                      <span className="ac-upload-icon">🎬</span>
-                      <p>Click to upload preview video</p>
-                      <small>MP4, MOV, WEBM • Max 500MB</small>
-                    </div>
-                  )}
-                </div>
-                <input
-                  id="videoInput"
-                  type="file"
-                  accept="video/mp4,video/quicktime,video/webm"
-                  onChange={handleVideo}
-                  disabled={loading}
-                  style={{ display: "none" }}
-                />
-                {videoPreview && (
-                  <button
-                    type="button"
-                    className="ac-remove-btn"
-                    onClick={() => {
-                      setPreviewVideo(null);
-                      setVideoPreview(null);
-                    }}
-                  >
-                    ✕ Remove Video
-                  </button>
-                )}
-                {previewVideo && (
-                  <p className="ac-file-name">
-                    📁 {previewVideo.name} —{" "}
-                    {(previewVideo.size / (1024 * 1024)).toFixed(1)} MB
-                  </p>
-                )}
-              </div>
-
-            </div>
-          </div>
-
-          {/* Upload Progress Bar */}
-          {loading && uploadProgress > 0 && (
-            <div className="ac-progress-wrapper">
-              <div className="ac-progress-label">
-                Uploading... {uploadProgress}%
-              </div>
-              <div className="ac-progress-track">
-                <div
-                  className="ac-progress-fill"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="ac-submit-btn"
-            disabled={loading}
-          >
-            {loading
-              ? uploadProgress > 0
-                ? `Uploading ${uploadProgress}%...`
-                : "Publishing..."
-              : "🚀 Publish Course"}
-          </button>
-
-        </form>
-      </div>
+      </form>
     </div>
   );
 }
-
-export default AddCourse;

@@ -13,18 +13,23 @@ import Wishlist from "./components/wishlist";
 import CourseDetail from "./courses/CourseDetail";
 import ForgotPassword from "./login/forgotpassword";
 import ResetPassword from "./login/resetpassword";
-import Navbar from "./components/Navbar"; // ✅ Navbar import
+import Navbar from "./components/Navbar";
 import Chat from "./chat/Chat";
 import CartPage from "./cart/CartPage";
 import CheckoutPage from "./Payment/CheckoutPage";
+import CourseDashboard from "./courses/coursecontain"; // ✅ new import
 
 const NO_NAVBAR_ROUTES = ["/login", "/signup", "/forgot-password"];
 
+// Routes where Navbar should be hidden
+const NO_NAVBAR_PREFIXES = ["/reset-password", "/learn"];
+
 const AppLayout = () => {
   const location = useLocation();
+
   const hideNavbar =
     NO_NAVBAR_ROUTES.includes(location.pathname) ||
-    location.pathname.startsWith("/reset-password");
+    NO_NAVBAR_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
 
   return (
     <>
@@ -46,7 +51,10 @@ const AppLayout = () => {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/cart" element={<CartPage />} />
-<Route path="/checkout/:courseId" element={<CheckoutPage />} />
+        <Route path="/checkout/:courseId" element={<CheckoutPage />} />
+
+        {/* ✅ Course learning dashboard — Navbar hidden on this route */}
+        <Route path="/learn/:courseId" element={<CourseDashboard />} />
       </Routes>
     </>
   );
