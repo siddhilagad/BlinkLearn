@@ -4,6 +4,22 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaHeart, FaRegHeart, FaStar, FaUserFriends, FaClock, FaPlayCircle, FaSearch } from "react-icons/fa";
 import "./courses.css";
 
+const BASE = "http://localhost:5000";
+
+// ── Smart thumbnail URL builder ──
+// Handles: full URL, "uploads/file.jpg", "file.jpg", null/undefined
+function getThumbnailUrl(thumbnail) {
+  if (!thumbnail || String(thumbnail).trim() === "" || thumbnail === "null") {
+    return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&auto=format&fit=crop";
+  }
+  const v = String(thumbnail).trim();
+  if (v.startsWith("http://") || v.startsWith("https://")) return v;
+  if (v.startsWith("uploads/") || v.startsWith("/uploads/")) {
+    return `${BASE}/${v.replace(/^\//, "")}`;
+  }
+  return `${BASE}/uploads/${v}`;
+}
+
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -20,7 +36,7 @@ const Courses = () => {
   const SORT_OPTIONS = ["Most Popular", "Newest", "Price: Low to High", "Price: High to Low"];
 
   const stats = [
-    { value: "3", label: "Total Courses" },
+    { value: courses.length || "—", label: "Total Courses" },
     { value: "50+", label: "Expert Tutors" },
     { value: "50K+", label: "Active Students" },
     { value: "4.8★", label: "Avg Rating" },
@@ -43,7 +59,6 @@ const Courses = () => {
 
     let result = [...courses];
 
-    // Search filter
     if (search) {
       result = result.filter(
         (c) =>
@@ -53,14 +68,12 @@ const Courses = () => {
       );
     }
 
-    // Category filter
     if (activeFilter !== "All") {
       result = result.filter(
         (c) => c.category?.toLowerCase() === activeFilter.toLowerCase()
       );
     }
 
-    // Sort
     if (sortBy === "Price: Low to High") result.sort((a, b) => a.price - b.price);
     else if (sortBy === "Price: High to Low") result.sort((a, b) => b.price - a.price);
     else if (sortBy === "Newest") result.sort((a, b) => b.course_id - a.course_id);
@@ -70,7 +83,7 @@ const Courses = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/courses");
+      const res = await axios.get(`${BASE}/api/courses`);
       setCourses(res.data);
       setFilteredCourses(res.data);
     } catch (err) {
@@ -163,9 +176,7 @@ const Courses = () => {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o}>{o}</option>
-            ))}
+            {SORT_OPTIONS.map((o) => (<option key={o}>{o}</option>))}
           </select>
         </div>
       </div>
@@ -196,24 +207,18 @@ const Courses = () => {
                 key={course.course_id}
                 onClick={() => navigate(`/course/${course.course_id}`)}
               >
-                {/* Image */}
                 <div className="card-image-wrapper">
+                  {/* ✅ Smart thumbnail URL — handles all storage formats */}
                   <img
-                    src={
-                      course.thumbnail &&
-                      (course.thumbnail.endsWith(".jpeg") ||
-                        course.thumbnail.endsWith(".jpg") ||
-                        course.thumbnail.endsWith(".png"))
-                        ? `http://localhost:5000/uploads/${course.thumbnail}`
-                        : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"
-                    }
+                    src={getThumbnailUrl(course.thumbnail)}
                     alt={course.title}
+                    onError={(e) => {
+                      e.target.onerror = null; // prevent infinite loop
+                      e.target.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&auto=format&fit=crop";
+                    }}
                   />
                   <span className="category-badge">{course.level}</span>
-                  <button
-                    className="wishlist-btn"
-                    onClick={(e) => toggleWishlist(e, course)}
-                  >
+                  <button className="wishlist-btn" onClick={(e) => toggleWishlist(e, course)}>
                     {isWishlisted(course.course_id)
                       ? <FaHeart className="heart-filled" />
                       : <FaRegHeart className="heart-empty" />
@@ -224,13 +229,12 @@ const Courses = () => {
                       <span>Progress</span>
                       <span>{course.progress}%</span>
                       <div className="progress-bar">
-                        <div className="progress-fill" style={{ width: course.progress + "%" }}></div>
+                        <div className="progress-fill" style={{ width: course.progress + "%" }} />
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Body */}
                 <div className="card-body">
                   <div className="teacher-row">
                     <div className="teacher-avatar">
@@ -240,22 +244,18 @@ const Courses = () => {
                       {course.teacher_name || user?.name || "Instructor"}
                     </span>
                   </div>
-
                   <h3 className="card-title">{course.title}</h3>
                   <p className="card-desc">{course.description}</p>
-
                   <div className="rating-row">
                     <FaStar className="star-icon" />
                     <span className="rating-num">4.8</span>
                     <span className="rating-count">(1,200)</span>
                   </div>
-
                   <div className="meta-row">
                     <span className="meta-item"><FaUserFriends /> 12,453</span>
                     <span className="meta-item"><FaClock /> 3h 20m</span>
                     <span className="meta-item level-tag">{course.level}</span>
                   </div>
-
                   <div className="card-footer">
                     <span className="price">
                       {course.price > 0 ? `₹ ${course.price}` : "Free"}

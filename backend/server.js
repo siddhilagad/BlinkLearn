@@ -171,6 +171,13 @@ app.get("/check-enrollment/:userId/:courseId", (req, res) => {
 // ================= MOUNT COURSE ROUTES =================
 const courseRoutes = require("./src/routes/courseRoutes");
 app.use("/api", courseRoutes);
+app.get('/api/course/:courseId/lessons', async (req, res) => {
+  const [rows] = await db.query(
+    'SELECT * FROM lessons WHERE course_id = ? ORDER BY order_index ASC',
+    [req.params.courseId]
+  );
+  res.json(rows);
+});
 
 // ================= SERVER =================
 // ✅ Use server.listen (not app.listen) so Socket.io works

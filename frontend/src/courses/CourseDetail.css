@@ -1,5 +1,5 @@
 /* ===========================
-   CourseDetail.css — Figma-matched design
+   CourseDetail.css
    =========================== */
 
 * { box-sizing: border-box; }
@@ -19,7 +19,7 @@
   align-items: center;
   gap: 16px;
   position: sticky;
-  top: 68px; /* below navbar */
+  top: 68px;
   z-index: 50;
 }
 
@@ -35,11 +35,7 @@
   transition: background 0.2s, border-color 0.2s;
   white-space: nowrap;
 }
-
-.cd-back-btn:hover {
-  background: #f5f3ff;
-  border-color: #a5b4fc;
-}
+.cd-back-btn:hover { background: #f5f3ff; border-color: #a5b4fc; }
 
 .cd-breadcrumb {
   font-size: 13px;
@@ -60,22 +56,24 @@
   align-items: start;
 }
 
-/* ── Left Section ── */
 .cd-left {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* ── Hero Image ── */
+/* ══════════════════════════════
+   HERO IMAGE (thumbnail only)
+   Fixed: explicit height so image is always visible
+   ══════════════════════════════ */
 .cd-hero {
   width: 100%;
+  height: 340px;           /* ← explicit height */
   border-radius: 16px;
   overflow: hidden;
-  position: relative;
   background: #1e1b4b;
-  aspect-ratio: 16 / 9;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
 }
 
 .cd-hero-img {
@@ -95,35 +93,153 @@
   font-size: 72px;
 }
 
-/* Progress Overlay */
-.cd-progress-overlay {
+/* ══════════════════════════════
+   VIDEO PLAYER WRAPPER
+   Fixed: explicit height instead of only aspect-ratio
+   ══════════════════════════════ */
+.cd-video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 340px;           /* ← explicit height matches hero */
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.cd-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;     /* contain so video isn't cropped */
+  display: block;
+  cursor: pointer;
+  background: #000;
+}
+
+/* Thumbnail overlay before first play */
+.cd-video-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.cd-video-thumb-overlay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* No-thumbnail play area */
+.cd-video-no-thumb {
+  position: absolute;
+  inset: 0;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Big play button in center */
+.cd-play-overlay-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(108, 99, 255, 0.88);
+  color: white;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  transition: transform 0.2s, background 0.2s;
+  box-shadow: 0 4px 24px rgba(108, 99, 255, 0.45);
+  z-index: 3;
+}
+.cd-play-overlay-btn:hover {
+  transform: translate(-50%, -50%) scale(1.12);
+  background: #6c63ff;
+}
+
+/* Video controls bar */
+.cd-video-controls {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
-  padding: 32px 24px 20px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.78));
+  padding: 24px 16px 12px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cd-progress-range {
+  width: 100%;
+  height: 4px;
+  accent-color: #6c63ff;
+  cursor: pointer;
+}
+
+.cd-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cd-ctrl-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  transition: color 0.2s;
+}
+.cd-ctrl-btn:hover { color: #a78bfa; }
+
+.cd-ctrl-label {
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Progress bar below video ── */
+.cd-progress-overlay-bar {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 20px;
 }
 
 .cd-progress-label {
   display: block;
-  color: #ffffff;
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 8px;
+  color: #374151;
+  margin-bottom: 10px;
 }
 
 .cd-progress-bar-track {
   width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.3);
+  height: 8px;
+  background: #e5e7eb;
   border-radius: 50px;
   overflow: hidden;
 }
 
 .cd-progress-bar-fill {
   height: 100%;
-  background: #4f46e5;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
   border-radius: 50px;
   transition: width 0.5s ease;
 }
@@ -150,7 +266,6 @@
   margin: 0 0 20px 0;
 }
 
-/* Stats Row */
 .cd-stats-row {
   display: flex;
   align-items: center;
@@ -169,21 +284,10 @@
   font-weight: 500;
 }
 
-.cd-star {
-  color: #f59e0b;
-  font-size: 16px;
-}
+.cd-star { color: #f59e0b; font-size: 16px; }
+.cd-rating-val { color: #374151; font-weight: 600; }
+.cd-stat-icon { font-size: 15px; }
 
-.cd-rating-val {
-  color: #374151;
-  font-weight: 600;
-}
-
-.cd-stat-icon {
-  font-size: 15px;
-}
-
-/* Badges */
 .cd-badge {
   display: inline-block;
   font-size: 12px;
@@ -191,17 +295,8 @@
   padding: 4px 14px;
   border-radius: 50px;
 }
-
-.cd-badge.level {
-  background: #1f2937;
-  color: #ffffff;
-}
-
-.cd-badge.category {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-}
+.cd-badge.level { background: #1f2937; color: #ffffff; }
+.cd-badge.category { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
 
 /* ── Instructor Card ── */
 .cd-instructor-card {
@@ -257,10 +352,7 @@
   color: #6b7280;
 }
 
-.cd-instructor-meta span:first-child {
-  color: #f59e0b;
-  font-weight: 600;
-}
+.cd-meta-rating { color: #f59e0b; font-weight: 600; }
 
 /* ── RIGHT SIDEBAR ── */
 .cd-right {
@@ -296,27 +388,35 @@
   flex-direction: column;
   gap: 4px;
   margin-bottom: 4px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .cd-lesson-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
-  transition: background 0.15s;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
 }
 
-.cd-lesson-item.completed {
-  background: #f9fafb;
-}
+.cd-lesson-item.completed { background: #f9fafb; }
 
 .cd-lesson-item:hover {
   background: #f5f3ff;
   border-color: #c4b5fd;
-  cursor: pointer;
+}
+
+/* Active (selected) lesson */
+.cd-lesson-item.active {
+  background: #ede9fe;
+  border-color: #7c3aed;
+  border-left: 3px solid #7c3aed;
 }
 
 .cd-lesson-icon {
@@ -334,7 +434,7 @@
   border-radius: 50%;
   background: #4f46e5;
   color: white;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -346,11 +446,6 @@
   height: 22px;
   border-radius: 50%;
   border: 2px solid #4f46e5;
-  color: #4f46e5;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .cd-lesson-info {
@@ -359,6 +454,7 @@
   align-items: center;
   flex: 1;
   min-width: 0;
+  gap: 8px;
 }
 
 .cd-lesson-title {
@@ -368,7 +464,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 180px;
 }
 
 .cd-lesson-duration {
@@ -399,15 +494,12 @@
 }
 
 .cd-free-tag {
-  background: #dcfce7;
-  color: #166534;
-  font-size: 12px;
+  font-size: 24px;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 50px;
+  color: #22c55e;
 }
 
-/* Action Buttons */
+/* ── Action Buttons ── */
 .cd-action-btn {
   display: block;
   width: 100%;
@@ -420,6 +512,7 @@
   text-align: center;
   transition: opacity 0.2s, transform 0.15s;
   letter-spacing: 0.3px;
+  margin-bottom: 8px;
 }
 
 .cd-action-btn.enroll {
@@ -427,54 +520,60 @@
   color: #fff;
   box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
 }
-
-.cd-action-btn.enroll:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-.cd-action-btn.enroll:disabled {
-  background: #a5b4fc;
-  cursor: not-allowed;
-  box-shadow: none;
-}
+.cd-action-btn.enroll:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
+.cd-action-btn.enroll:disabled { background: #a5b4fc; cursor: not-allowed; box-shadow: none; }
 
 .cd-action-btn.continue {
   background: #111827;
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
+.cd-action-btn.continue:hover { opacity: 0.88; transform: translateY(-2px); }
 
-.cd-action-btn.continue:hover {
-  opacity: 0.88;
-  transform: translateY(-2px);
-}
-
-.cd-action-btn.edit {
-  background: linear-gradient(135deg, #059669, #0891b2);
+.cd-action-btn.buy {
+  background: #5c6ef8;
   color: #fff;
 }
+.cd-action-btn.buy:hover:not(:disabled) { background: #4455e6; }
+.cd-action-btn.buy:disabled { opacity: 0.7; cursor: not-allowed; }
 
-.cd-action-btn.edit:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
+.cd-action-btn.cart {
+  background: transparent;
+  color: #5c6ef8;
+  border: 2px solid #5c6ef8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cd-action-btn.cart:hover:not(:disabled) { background: #f0f2ff; }
+.cd-action-btn.cart.cart-added {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #fff;
+  cursor: default;
 }
 
 .cd-guarantee {
   text-align: center;
   font-size: 12px;
   color: #9ca3af;
-  margin: 10px 0 0;
+  margin: 6px 0 0;
 }
 
-.cd-teacher-note {
-  text-align: center;
+.cd-go-to-cart-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: #5c6ef8;
+  border: none;
   font-size: 14px;
-  color: #6b7280;
-  padding: 12px;
-  background: #f9fafb;
-  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: underline;
+  transition: color 0.2s;
 }
+.cd-go-to-cart-btn:hover { color: #4455e6; }
 
 /* ── Loading / Error ── */
 .cd-loading-screen {
@@ -497,9 +596,7 @@
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .cd-error-screen {
   min-height: 100vh;
@@ -542,219 +639,24 @@
     padding: 0 16px 40px;
   }
 
-  .cd-right {
-    position: static;
-  }
+  .cd-right { position: static; }
 
   .cd-topbar {
     padding: 12px 20px;
     top: 0;
   }
 
-  .cd-title {
-    font-size: 22px;
+  .cd-hero,
+  .cd-video-wrapper {
+    height: 220px;   /* smaller on mobile */
   }
+
+  .cd-title { font-size: 22px; }
 
   .cd-info-section,
   .cd-instructor-card {
     padding: 20px;
   }
 
-  .cd-stats-row {
-    gap: 10px;
-  }
-}
-
-
-
-
-
-/* ===== Video Player ===== */
-.cd-video-wrapper {
-  position: relative;
-  width: 100%;
-  background: #000;
-  border-radius: 16px;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  margin-bottom: 24px;
-}
-
-.cd-video-element {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  cursor: pointer;
-}
-
-/* Thumbnail overlay before play */
-.cd-video-thumb-overlay {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.cd-video-thumb-overlay img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cd-play-overlay-btn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(108, 99, 255, 0.88);
-  color: white;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  transition: transform 0.2s, background 0.2s;
-  box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
-}
-
-.cd-play-overlay-btn:hover {
-  transform: translate(-50%, -50%) scale(1.12);
-  background: #6c63ff;
-}
-
-/* Video controls bar */
-.cd-video-controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.78));
-  padding: 12px 16px 10px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cd-progress-range {
-  width: 100%;
-  height: 4px;
-  accent-color: #6c63ff;
-  cursor: pointer;
-}
-
-.cd-controls-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.cd-ctrl-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 2px;
-  transition: color 0.2s;
-}
-
-.cd-ctrl-btn:hover {
-  color: #a78bfa;
-}
-
-.cd-ctrl-label {
-  color: #e5e7eb;
-  font-size: 13px;
-  font-weight: 500;
-}
-/* ── Buy Now button ── */
-.cd-action-btn.buy {
-  width: 100%;
-  padding: 14px;
-  background: #5c6ef8;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 10px;
-  transition: background 0.2s;
-}
-.cd-action-btn.buy:hover {
-  background: #4455e6;
-}
-.cd-action-btn.buy:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-/* ── Add to Cart button ── */
-.cd-action-btn.cart {
-  width: 100%;
-  padding: 14px;
-  background: transparent;
-  color: #5c6ef8;
-  border: 2px solid #5c6ef8;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.cd-action-btn.cart:hover {
-  background: #f0f2ff;
-}
-.cd-action-btn.cart.cart-added {
-  background: #22c55e;
-  border-color: #22c55e;
-  color: #fff;
-}
-.cd-action-btn.cart:disabled {
-  cursor: not-allowed;
-}
-
-/* ── Free tag in price row ── */
-.cd-free-tag {
-  font-size: 24px;
-  font-weight: 700;
-  color: #22c55e;
-}
-/* Go to Cart link button */
-.cd-go-to-cart-btn {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  color: #5c6ef8;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-  margin-top: -4px;
-  margin-bottom: 4px;
-  text-decoration: underline;
-  transition: color 0.2s;
-}
-
-.cd-go-to-cart-btn:hover {
-  color: #4455e6;
-}
-
-/* Cart added state */
-.cd-action-btn.cart.cart-added {
-  background: #22c55e;
-  border-color: #22c55e;
-  color: #fff;
-  cursor: default;
+  .cd-stats-row { gap: 10px; }
 }

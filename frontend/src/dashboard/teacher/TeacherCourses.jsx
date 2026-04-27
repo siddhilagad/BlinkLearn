@@ -5,20 +5,19 @@ import "./TeacherCourses.css";
 
 const TeacherCourses = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("blinklearn_user")); // ✅ updated key
+  const user = JSON.parse(localStorage.getItem("blinklearn_user"));
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+    if (!user) { navigate("/login"); return; }
+
     const fetchCourses = async () => {
       try {
+        // ✅ Fixed: added /api
         const res = await axios.get(
-          `http://localhost:5000/teacher-courses/${user.user_id}`
+          `http://localhost:5000/api/teacher-courses/${user.user_id}`
         );
         setCourses(res.data);
       } catch (err) {
@@ -31,13 +30,13 @@ const TeacherCourses = () => {
     fetchCourses();
   }, [navigate]);
 
-  // ✅ e.stopPropagation() add केला — card click trigger होणार नाही
   const handleDelete = async (e, courseId) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this course?")) return;
     try {
+      // ✅ Fixed: added /api
       await axios.delete(
-        `http://localhost:5000/delete-course/${courseId}/${user.user_id}`
+        `http://localhost:5000/api/delete-course/${courseId}`
       );
       setCourses(courses.filter((c) => c.course_id !== courseId));
     } catch (err) {
@@ -46,7 +45,6 @@ const TeacherCourses = () => {
     }
   };
 
-  // ✅ e.stopPropagation() add केला
   const handleEdit = (e, courseId) => {
     e.stopPropagation();
     navigate(`/edit-course/${courseId}`);
@@ -61,10 +59,7 @@ const TeacherCourses = () => {
       ) : courses.length === 0 ? (
         <p>
           You have not added any courses yet.{" "}
-          <span
-            onClick={() => navigate("/add-course")}
-            className="add-link"
-          >
+          <span onClick={() => navigate("/add-course")} className="add-link">
             Add a new course
           </span>
           .
@@ -75,7 +70,7 @@ const TeacherCourses = () => {
             <div
               className="course-card"
               key={course.course_id}
-              onClick={() => navigate(`/course/${course.course_id}`)} // ✅ clickable
+              onClick={() => navigate(`/course/${course.course_id}`)}
               style={{ cursor: "pointer" }}
             >
               {course.thumbnail && (
@@ -92,12 +87,8 @@ const TeacherCourses = () => {
                 <span>Level: {course.level}</span>
               </div>
               <div className="course-actions">
-                <button onClick={(e) => handleEdit(e, course.course_id)}>
-                  Edit
-                </button>
-                <button onClick={(e) => handleDelete(e, course.course_id)}>
-                  Delete
-                </button>
+                <button onClick={(e) => handleEdit(e, course.course_id)}>Edit</button>
+                <button onClick={(e) => handleDelete(e, course.course_id)}>Delete</button>
               </div>
             </div>
           ))}

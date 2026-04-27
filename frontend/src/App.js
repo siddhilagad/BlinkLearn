@@ -17,7 +17,8 @@ import Navbar from "./components/Navbar";
 import Chat from "./chat/Chat";
 import CartPage from "./cart/CartPage";
 import CheckoutPage from "./Payment/CheckoutPage";
-import CourseDashboard from "./courses/coursecontain"; // ✅ new import
+import LearnPage from "./courses/Learnpage";
+
 
 const NO_NAVBAR_ROUTES = ["/login", "/signup", "/forgot-password"];
 
@@ -52,9 +53,9 @@ const AppLayout = () => {
         <Route path="/chat" element={<Chat />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout/:courseId" element={<CheckoutPage />} />
+        <Route path="/learn/:courseId" element={<LearnPage />} />
 
-        {/* ✅ Course learning dashboard — Navbar hidden on this route */}
-        <Route path="/learn/:courseId" element={<CourseDashboard />} />
+        
       </Routes>
     </>
   );
