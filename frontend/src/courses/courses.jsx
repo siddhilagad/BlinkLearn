@@ -36,8 +36,8 @@ const Courses = () => {
   const SORT_OPTIONS = ["Most Popular", "Newest", "Price: Low to High", "Price: High to Low"];
 
   const stats = [
-    { value: courses.length || "—", label: "Total Courses" },
-    { value: "50+", label: "Expert Tutors" },
+    { value: courses.length, label: "Total Courses" },
+      { value: new Set(courses.map(c => c.teacher_name)).size, label: "Expert Tutors" },
     { value: "50K+", label: "Active Students" },
     { value: "4.8★", label: "Avg Rating" },
   ];
