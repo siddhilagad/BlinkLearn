@@ -10,7 +10,8 @@ const BASE = "http://localhost:5000";
 // Handles: full URL, "uploads/file.jpg", "file.jpg", null
 function buildMediaUrl(value) {
   if (!value || value === "null" || String(value).trim() === "") return null;
-  const v = String(value).trim();
+  let v = String(value).trim();
+  v = v.replace(/\\/g, "/");
   if (v.startsWith("http://") || v.startsWith("https://")) return v;
   if (v.startsWith("uploads/") || v.startsWith("/uploads/")) {
     return `${BASE}/${v.replace(/^\//, "")}`;
@@ -115,12 +116,13 @@ function VideoPlayer({ videoUrl, thumbnail }) {
       <video
         ref={videoRef}
         src={videoUrl}
+        poster={thumbnail || undefined}
+        controls
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
         onClick={togglePlay}
         onError={() => setVideoError(true)}
         className="cd-video-element"
-        style={{ display: !playing && progress === 0 ? "none" : "block" }}
         preload="metadata"
       />
 

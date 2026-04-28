@@ -18,7 +18,8 @@ const db = mysql.createConnection({
 });
 
 // ================= UPLOADS FOLDER =================
-const uploadsDir = path.join(__dirname, "../uploads"); // adjust if needed
+// Use the shared backend uploads directory so files are served from /uploads
+const uploadsDir = path.join(__dirname, "../../uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }

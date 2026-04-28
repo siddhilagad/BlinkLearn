@@ -121,7 +121,8 @@ export default function AddCourse() {
 
     // ✅ FIXED: use "blinklearn_user" key (same as login/home.jsx)
     const user = JSON.parse(localStorage.getItem("blinklearn_user"));
-    if (!user?.user_id) {
+    const teacherId = user?.user_id || user?.id;
+    if (!teacherId) {
       alert("Please log in first.");
       return;
     }
@@ -138,7 +139,7 @@ export default function AddCourse() {
     }
 
     const formData = new FormData();
-    formData.append("teacher_id", user.user_id);
+    formData.append("teacher_id", teacherId);
     formData.append("title", title);
     formData.append("description", description);
     formData.append("price", price);
@@ -148,13 +149,6 @@ export default function AddCourse() {
     if (previewVideo?.file) {
       formData.append("preview_video", previewVideo.file);
     }
-    sections.forEach((section) => {
-      section.lessons.forEach((lesson) => {
-        if (lesson.videoFile) {
-          formData.append("lessonVideos", lesson.videoFile);
-        }
-      });
-    });
 
     try {
       setIsSubmitting(true);
@@ -174,7 +168,8 @@ export default function AddCourse() {
       setStep(1);
     } catch (error) {
       console.error("Submit error:", error);
-      const msg = error?.response?.data?.message || "Failed to publish course.";
+      console.error("Submit response data:", error?.response?.data);
+      const msg = error?.response?.data?.message || error.message || "Failed to publish course.";
       alert(`❌ ${msg}`);
     } finally {
       setIsSubmitting(false);

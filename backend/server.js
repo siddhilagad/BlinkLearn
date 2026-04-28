@@ -171,12 +171,18 @@ app.get("/check-enrollment/:userId/:courseId", (req, res) => {
 // ================= MOUNT COURSE ROUTES =================
 const courseRoutes = require("./src/routes/courseRoutes");
 app.use("/api", courseRoutes);
-app.get('/api/course/:courseId/lessons', async (req, res) => {
-  const [rows] = await db.query(
+app.get('/api/course/:courseId/lessons', (req, res) => {
+  db.query(
     'SELECT * FROM lessons WHERE course_id = ? ORDER BY order_index ASC',
-    [req.params.courseId]
+    [req.params.courseId],
+    (err, rows) => {
+      if (err) {
+        console.error("Lessons fetch error:", err);
+        return res.status(500).json({ message: "Failed to fetch lessons" });
+      }
+      res.json(rows);
+    }
   );
-  res.json(rows);
 });
 
 // ================= SERVER =================
