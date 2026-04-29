@@ -46,6 +46,23 @@ db.connect((err) => {
     console.log("❌ Database connection failed:", err);
   } else {
     console.log("✅ Connected to MySQL");
+    const createLessonsTable = `
+      CREATE TABLE IF NOT EXISTS lessons (
+        lesson_id INT AUTO_INCREMENT PRIMARY KEY,
+        course_id INT NOT NULL,
+        section_title VARCHAR(255),
+        title VARCHAR(255) NOT NULL,
+        type VARCHAR(50) DEFAULT 'video',
+        duration VARCHAR(50),
+        description TEXT,
+        video_url VARCHAR(255),
+        order_index INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    db.query(createLessonsTable, (createErr) => {
+      if (createErr) console.error("❌ Failed to ensure lessons table:", createErr);
+    });
   }
 });
 
@@ -173,7 +190,7 @@ const courseRoutes = require("./src/routes/courseRoutes");
 app.use("/api", courseRoutes);
 app.get('/api/course/:courseId/lessons', (req, res) => {
   db.query(
-    'SELECT * FROM lessons WHERE course_id = ? ORDER BY order_index ASC',
+    'SELECT * FROM lessons WHERE course_id = ? ORDER BY order_index ASC, lesson_id ASC',
     [req.params.courseId],
     (err, rows) => {
       if (err) {

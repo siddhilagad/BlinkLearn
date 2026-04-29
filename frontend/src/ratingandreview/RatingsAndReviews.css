@@ -1,0 +1,552 @@
+/* ═══════════════════════════════════════════════════════════
+   RatingsAndReviews.css  —  BlinkLearn purple/blue theme
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Root & Reset ─────────────────────────────────────────── */
+.rar-root {
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  color: #111827;
+  box-sizing: border-box;
+}
+
+.rar-root *,
+.rar-root *::before,
+.rar-root *::after {
+  box-sizing: border-box;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.rar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.rar-header__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.rar-header__subtitle {
+  margin: 4px 0 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ── Write Review Button ──────────────────────────────────── */
+.rar-btn-primary {
+  padding: 10px 22px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.rar-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+}
+
+.rar-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* ── Success Toast ────────────────────────────────────────── */
+.rar-toast {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #15803d;
+  font-weight: 600;
+  font-size: 14px;
+  animation: rar-fadeIn 0.35s ease;
+}
+
+/* ── Rating Summary Card ──────────────────────────────────── */
+.rar-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 24px;
+  border: 1px solid #f3f4f6;
+}
+
+/* Big score block */
+.rar-score {
+  text-align: center;
+  min-width: 110px;
+}
+
+.rar-score__number {
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 1;
+  color: #111827;
+  letter-spacing: -2px;
+}
+
+.rar-score__label {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+
+/* Stars row */
+.rar-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rar-stars--center {
+  justify-content: center;
+}
+
+.rar-star {
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.rar-star--interactive {
+  cursor: pointer;
+}
+
+.rar-star--interactive:hover {
+  transform: scale(1.2);
+}
+
+/* Rating distribution bars */
+.rar-bars {
+  min-width: 0;
+}
+
+.rar-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.rar-bar-row__label {
+  font-size: 13px;
+  color: #6b7280;
+  width: 6px;
+  flex-shrink: 0;
+}
+
+.rar-bar-row__track {
+  flex: 1;
+  height: 8px;
+  border-radius: 99px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.rar-bar-row__fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  transition: width 0.8s ease;
+}
+
+.rar-bar-row__pct {
+  font-size: 12px;
+  color: #9ca3af;
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Write Review Form ────────────────────────────────────── */
+.rar-form-wrap {
+  margin-bottom: 24px;
+}
+
+.rar-form {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 16px rgba(124, 58, 237, 0.12);
+  border: 1.5px solid #ede9fe;
+}
+
+.rar-form__title {
+  margin: 0 0 20px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.rar-form__group {
+  margin-bottom: 16px;
+}
+
+.rar-form__label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+/* Star picker row */
+.rar-form__star-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rar-form__star-hint {
+  font-size: 13px;
+  color: #7c3aed;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* Inputs */
+.rar-input,
+.rar-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  color: #111827;
+  background: #fafafa;
+  transition: border-color 0.2s;
+  display: block;
+}
+
+.rar-input:focus,
+.rar-textarea:focus {
+  border-color: #7c3aed;
+  background: #fff;
+}
+
+.rar-textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.rar-form__char-count {
+  text-align: right;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Error message */
+.rar-form__error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+/* Form actions */
+.rar-form__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.rar-btn-secondary {
+  padding: 11px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.rar-btn-secondary:hover {
+  background: #f9fafb;
+  color: #374151;
+}
+
+.rar-btn-submit {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.rar-btn-submit:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* ── Controls Bar (filter + sort) ────────────────────────── */
+.rar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.rar-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rar-filter-btn {
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.rar-filter-btn:hover {
+  border-color: #a855f7;
+  color: #7c3aed;
+}
+
+.rar-filter-btn--active {
+  border: none;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.rar-filter-btn--active:hover {
+  color: #fff;
+  opacity: 0.92;
+}
+
+.rar-sort-select {
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  font-size: 13px;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.rar-sort-select:focus {
+  border-color: #7c3aed;
+}
+
+/* ── Review List ──────────────────────────────────────────── */
+.rar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rar-empty {
+  text-align: center;
+  padding: 48px 0;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+/* ── Review Card ──────────────────────────────────────────── */
+.rar-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  border: 1px solid #f3f4f6;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.rar-card:hover {
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.1);
+  transform: translateY(-1px);
+}
+
+.rar-card__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.rar-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rar-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.rar-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.rar-card__name {
+  font-weight: 700;
+  color: #111827;
+  font-size: 15px;
+}
+
+.rar-card__date {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-left: 10px;
+}
+
+.rar-card__title {
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+  margin: 0 0 6px;
+}
+
+.rar-card__text {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0 0 14px;
+}
+
+/* Helpful button */
+.rar-helpful-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.rar-helpful-btn:hover {
+  border-color: #a855f7;
+  color: #7c3aed;
+}
+
+.rar-helpful-btn--voted {
+  border-color: #7c3aed;
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+/* ── Avatar ───────────────────────────────────────────────── */
+.rar-avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* ── Animations ───────────────────────────────────────────── */
+@keyframes rar-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .rar-summary {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .rar-score {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+  }
+
+  .rar-score__number {
+    font-size: 48px;
+  }
+
+  .rar-card {
+    padding: 16px;
+  }
+
+  .rar-form {
+    padding: 18px;
+  }
+
+  .rar-header__title {
+    font-size: 19px;
+  }
+
+  .rar-btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+}

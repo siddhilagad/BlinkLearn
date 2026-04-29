@@ -17,6 +17,30 @@ const db = mysql.createConnection({
   database: "blinklearn",
 });
 
+db.connect((err) => {
+  if (err) {
+    console.error("❌ CourseRoutes DB connection failed:", err);
+    return;
+  }
+  const createLessonsTable = `
+    CREATE TABLE IF NOT EXISTS lessons (
+      lesson_id INT AUTO_INCREMENT PRIMARY KEY,
+      course_id INT NOT NULL,
+      section_title VARCHAR(255),
+      title VARCHAR(255) NOT NULL,
+      type VARCHAR(50) DEFAULT 'video',
+      duration VARCHAR(50),
+      description TEXT,
+      video_url VARCHAR(255),
+      order_index INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `;
+  db.query(createLessonsTable, (createErr) => {
+    if (createErr) console.error("❌ Failed to ensure lessons table in courseRoutes:", createErr);
+  });
+});
+
 // ================= UPLOADS FOLDER =================
 // Use the shared backend uploads directory so files are served from /uploads
 const uploadsDir = path.join(__dirname, "../../uploads");
@@ -44,7 +68,10 @@ const fileFilter = (req, file, cb) => {
 
   if (file.fieldname === "thumbnail" && imageTypes.test(ext)) {
     cb(null, true);
-  } else if (file.fieldname === "preview_video" && videoTypes.test(ext)) {
+  } else if (
+    (file.fieldname === "preview_video" || file.fieldname.startsWith("lesson_video_")) &&
+    videoTypes.test(ext)
+  ) {
     cb(null, true);
   } else {
     cb(new Error(`Invalid file type for field: ${file.fieldname}`));
@@ -61,27 +88,38 @@ const upload = multer({
 // Full URL: POST http://localhost:5000/api/add-course
 router.post(
   "/add-course",
-  upload.fields([
-    { name: "thumbnail", maxCount: 1 },
-    { name: "preview_video", maxCount: 1 },
-  ]),
+  upload.any(),
   (req, res) => {
     console.log("✅ /api/add-course hit");
     console.log("Body:", req.body);
     console.log("Files:", req.files);
 
-    const { title, description, price, level, category, teacher_id } = req.body;
+    const { title, description, price, level, category, teacher_id, sections } = req.body;
 
     if (!teacher_id)
       return res.status(400).json({ message: "teacher_id is missing" });
     if (!title || !description || price === undefined || !level)
       return res.status(400).json({ message: "All required fields must be filled" });
 
-    const thumbnail = req.files?.thumbnail?.[0]?.filename || null;
-    const preview_video = req.files?.preview_video?.[0]?.filename || null;
+    const filesMap = {};
+    (req.files || []).forEach((file) => {
+      filesMap[file.fieldname] = file;
+    });
+
+    const thumbnail = filesMap.thumbnail?.filename || null;
+    const preview_video = filesMap.preview_video?.filename || null;
 
     if (!thumbnail)
       return res.status(400).json({ message: "Thumbnail is required" });
+
+    let parsedSections = [];
+    if (sections) {
+      try {
+        parsedSections = typeof sections === "string" ? JSON.parse(sections) : sections;
+      } catch (err) {
+        return res.status(400).json({ message: "Invalid sections format" });
+      }
+    }
 
     const coursePrice = parseFloat(price) || 0;
     const courseType = coursePrice > 0 ? "paid" : "free";
@@ -110,13 +148,57 @@ router.post(
           console.error("❌ DB Error:", err);
           return res.status(500).json({ message: "Course add failed", error: err.message });
         }
+
         console.log("✅ Course inserted, ID:", result.insertId);
-        res.json({
-          message: "Course added successfully",
-          course_id: result.insertId,
-          thumbnail,
-          preview_video,
+
+        const lessonRows = [];
+        let orderIndex = 0;
+
+        parsedSections.forEach((section) => {
+          const sectionTitle = section.title || null;
+          (section.lessons || []).forEach((lesson) => {
+            const videoField = lesson.videoField;
+            const lessonFile = videoField ? filesMap[videoField] : null;
+            const lessonVideo = lessonFile?.filename || null;
+
+            lessonRows.push([
+              result.insertId,
+              sectionTitle,
+              lesson.title || "Untitled Lesson",
+              lesson.type || "video",
+              lesson.duration || null,
+              lesson.description || null,
+              lessonVideo,
+              orderIndex,
+            ]);
+            orderIndex += 1;
+          });
         });
+
+        const finish = () => {
+          res.json({
+            message: "Course added successfully",
+            course_id: result.insertId,
+            thumbnail,
+            preview_video,
+          });
+        };
+
+        if (lessonRows.length === 0) {
+          return finish();
+        }
+
+        db.query(
+          `INSERT INTO lessons (course_id, section_title, title, type, duration, description, video_url, order_index) VALUES ?`,
+          [lessonRows],
+          (lessonErr) => {
+            if (lessonErr) {
+              console.error("❌ Lesson insert error:", lessonErr);
+              return res.status(500).json({ message: "Course created but lesson save failed", error: lessonErr.message });
+            }
+            finish();
+          }
+        );
       }
     );
   }

@@ -150,6 +150,25 @@ export default function AddCourse() {
       formData.append("preview_video", previewVideo.file);
     }
 
+    const sectionsPayload = sections.map((section, sectionIndex) => ({
+      title: section.title,
+      lessons: section.lessons.map((lesson, lessonIndex) => {
+        const lessonVideoField = lesson.videoFile ? `lesson_video_${sectionIndex}_${lessonIndex}` : null;
+        if (lesson.videoFile) {
+          formData.append(lessonVideoField, lesson.videoFile);
+        }
+        return {
+          title: lesson.title,
+          type: lesson.type,
+          duration: lesson.duration,
+          description: lesson.description || null,
+          videoField: lessonVideoField,
+          sectionTitle: section.title,
+        };
+      }),
+    }));
+    formData.append("sections", JSON.stringify(sectionsPayload));
+
     try {
       setIsSubmitting(true);
       const data = await addCourse(formData);

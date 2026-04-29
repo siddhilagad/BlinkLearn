@@ -3,11 +3,11 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaPlay, FaPause, FaExpand, FaVolumeUp, FaVolumeMute, FaShoppingCart } from "react-icons/fa";
 import "./CourseDetail.css";
+import RatingsAndReviews from "../ratingandreview/RatingsAndReviews";
+
 
 const BASE = "http://localhost:5000";
 
-// ── Smart URL builder ──
-// Handles: full URL, "uploads/file.jpg", "file.jpg", null
 function buildMediaUrl(value) {
   if (!value || value === "null" || String(value).trim() === "") return null;
   let v = String(value).trim();
@@ -29,7 +29,6 @@ function VideoPlayer({ videoUrl, thumbnail }) {
   const [videoError, setVideoError] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // Reset error state when URL changes
   useEffect(() => { setVideoError(false); }, [videoUrl]);
   useEffect(() => { setImgError(false); }, [thumbnail]);
 
@@ -67,7 +66,6 @@ function VideoPlayer({ videoUrl, thumbnail }) {
 
   const handleEnded = () => { setPlaying(false); setProgress(0); };
 
-  // ── No video (or error) → show thumbnail or placeholder ──
   if (!videoUrl || videoError) {
     return (
       <div className="cd-hero">
@@ -87,14 +85,12 @@ function VideoPlayer({ videoUrl, thumbnail }) {
     );
   }
 
-  // ── Has video ──
   return (
     <div
       className="cd-video-wrapper"
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => playing && setShowControls(false)}
     >
-      {/* Thumbnail overlay shown before first play */}
       {!playing && progress === 0 && thumbnail && !imgError && (
         <div className="cd-video-thumb-overlay" onClick={togglePlay}>
           <img
@@ -106,7 +102,6 @@ function VideoPlayer({ videoUrl, thumbnail }) {
         </div>
       )}
 
-      {/* No thumbnail? Show plain play button */}
       {!playing && progress === 0 && (!thumbnail || imgError) && (
         <div className="cd-video-no-thumb" onClick={togglePlay}>
           <div className="cd-play-overlay-btn"><FaPlay /></div>
@@ -167,7 +162,6 @@ function CourseDetail() {
   const [cartLoading, setCartLoading] = useState(false);
   const [buying, setBuying] = useState(false);
 
-  // ── Dynamic lessons from API ──
   const [lessons, setLessons] = useState([]);
   const [currentLesson, setCurrentLesson] = useState(null);
 
@@ -176,10 +170,8 @@ function CourseDetail() {
     ? Math.round((completedCount / lessons.length) * 100)
     : 0;
 
-  // Calculate total duration string from lessons
   const totalDurationStr = (() => {
     if (!lessons.length) return "—";
-    // Try to sum seconds if available
     const totalSec = lessons.reduce((acc, l) => acc + (l.duration_seconds || 0), 0);
     if (totalSec > 0) {
       const h = Math.floor(totalSec / 3600);
@@ -220,7 +212,6 @@ function CourseDetail() {
         if (data.length > 0) setCurrentLesson(data[0]);
       } catch (err) {
         console.error("Lessons fetch failed — using fallback:", err);
-        // Fallback so sidebar isn't empty
         const fallback = [
           { id: 1, title: "Introduction & Overview", duration: "7:00", completed: true },
           { id: 2, title: "Core Concepts", duration: "6:30", completed: true },
@@ -309,11 +300,9 @@ function CourseDetail() {
 
   if (!course) return null;
 
-  // ── Build media URLs safely ──
   const thumbnailUrl = buildMediaUrl(course.thumbnail);
   const videoUrl = buildMediaUrl(course.preview_video);
 
-  // Debug (remove after confirming it works)
   console.log("🖼 thumbnailUrl →", thumbnailUrl);
   console.log("🎬 videoUrl →", videoUrl);
 
@@ -417,6 +406,10 @@ function CourseDetail() {
               </div>
             </div>
           </div>
+
+          {/* ✅ Ratings & Reviews — correctly placed here */}
+          <RatingsAndReviews courseId={courseIdNum} />
+
         </div>
 
         {/* RIGHT SIDEBAR */}
