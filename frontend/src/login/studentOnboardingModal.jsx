@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./studentOnboardingModal.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const steps = [
   {
@@ -74,7 +75,7 @@ const steps = [
   },
 ];
 
-function StudentOnboarding({ onClose }) {
+function StudentOnboarding({ user, onClose }) {
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState(
@@ -105,15 +106,29 @@ function StudentOnboarding({ onClose }) {
   const canProceed =
     step.type === "single" ? answer !== null : answer.length > 0;
 
-  const handleNext = () => {
+  const markOnboardingDone = async () => {
+    try {
+      if (user && user.user_id) {
+        await axios.put(`http://localhost:5000/api/onboarding-done/${user.user_id}`);
+        // Update local user object too
+        const updatedUser = { ...user, onboarding_done: 1 };
+        localStorage.setItem("blinklearn_user", JSON.stringify(updatedUser));
+      }
+      localStorage.setItem("blinklearn_onboarding_done", "true");
+    } catch (err) {
+      console.error("Failed to mark onboarding as done:", err);
+    }
+  };
+
+  const handleNext = async () => {
     if (current + 1 < totalSteps) {
       setCurrent((prev) => prev + 1);
     } else {
       // Save answers & mark onboarding done
-      localStorage.setItem("blinklearn_onboarding_done", "true");
+      await markOnboardingDone();
       localStorage.setItem("blinklearn_onboarding_answers", JSON.stringify(answers));
       if (onClose) onClose();
-      navigate("/student-dashboard");
+      navigate("/");
     }
   };
 
@@ -121,10 +136,10 @@ function StudentOnboarding({ onClose }) {
     if (current > 0) setCurrent((prev) => prev - 1);
   };
 
-  const handleSkip = () => {
-    localStorage.setItem("blinklearn_onboarding_done", "true");
+  const handleSkip = async () => {
+    await markOnboardingDone();
     if (onClose) onClose();
-    navigate("/student-dashboard");
+    navigate("/");
   };
 
   const progressPercent = ((current + 1) / totalSteps) * 100;

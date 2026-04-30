@@ -4,17 +4,18 @@ import axios from "axios";
 const MyCourses = () => {
   const [courses, setCourses] = useState([]);
   const user = JSON.parse(localStorage.getItem("blinklearn_user"));
+  const userId = user?.user_id || user?.id;
 
   useEffect(() => {
-    if (user?.id && user?.role) {
+    if (userId && user?.role) {
       fetchCourses();
     }
-  }, []);
+  }, [userId, user?.role]);
 
   const fetchCourses = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/courses/user/${user.id}?role=${user.role}`
+        `http://localhost:5000/api/courses/user/${userId}?role=${user.role}`
       );
       setCourses(res.data);
     } catch (error) {
@@ -26,7 +27,7 @@ const MyCourses = () => {
 
   return (
     <div style={{ padding: "30px" }}>
-      <h1>My Courses</h1>
+      <h1>{user?.role === "student" ? "My Learning" : "My Courses"}</h1>
 
       {courses.length === 0 ? (
         <p>No courses found</p>

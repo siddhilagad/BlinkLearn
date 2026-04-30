@@ -8,6 +8,7 @@ import AddCourse from "./dashboard/teacher/AddCourse";
 import TeacherDashboard from "./dashboard/teacher/TeacherDashboard";
 import StudentDashboard from "./dashboard/student/StudentDashboard";
 import TeacherCourses from "./dashboard/teacher/TeacherCourses";
+import MyCourses from "./dashboard/MyCourses";
 import EditProfile from "./dashboard/EditProfile";
 import Wishlist from "./components/wishlist";
 import CourseDetail from "./courses/CourseDetail";
@@ -46,6 +47,7 @@ const AppLayout = () => {
         <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
         <Route path="/teacher-courses" element={<TeacherCourses />} />
         <Route path="/my-courses" element={<TeacherCourses />} />
+        <Route path="/my-learning" element={<MyCourses />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

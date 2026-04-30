@@ -20,17 +20,9 @@ function isFullNameValid(name) {
   return /^[A-Za-z\s]+$/.test(name.trim()) && name.trim().length > 0;
 }
 
-// ─── Enhanced Email Validation ───────────────────────────────────────────────
-
 const emailRules = [
+  { test: (e) => e.includes("@") },
   {
-    label: "Contains '@' symbol",
-    test: (e) => e.includes("@"),
-  },
-  {
-    label: "Has valid local part (before @)",
-    // local part: 1–64 chars, allows letters, digits, dots, +, -, _
-    // must not start or end with a dot, no consecutive dots
     test: (e) => {
       const local = e.split("@")[0];
       return (
@@ -42,54 +34,31 @@ const emailRules = [
     },
   },
   {
-    label: "Has a domain (e.g. gmail, yahoo)",
-    // domain must exist after @
     test: (e) => {
       const parts = e.split("@");
       return parts.length === 2 && parts[1].length > 0;
     },
   },
   {
-    label: "Domain has a valid extension (e.g. .com, .in)",
-    // TLD must be 2–6 alpha chars
     test: (e) => {
       const domain = e.split("@")[1] || "";
       return /^[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$/.test(domain);
     },
   },
+  { test: (e) => !/\s/.test(e) },
+  { test: (e) => !/\.\./.test(e) },
   {
-    label: "No spaces allowed",
-    test: (e) => !/\s/.test(e),
-  },
-  {
-    label: "No consecutive dots (..) anywhere",
-    test: (e) => !/\.\./.test(e),
-  },
-  {
-    label: "Domain does not start or end with a dot or hyphen",
     test: (e) => {
       const domain = e.split("@")[1] || "";
       return !/^[.-]/.test(domain) && !/[.-]$/.test(domain);
     },
   },
-  {
-    label: "Only one '@' symbol",
-    test: (e) => (e.match(/@/g) || []).length === 1,
-  },
+  { test: (e) => (e.match(/@/g) || []).length === 1 },
 ];
-
-function getEmailRuleStatuses(email) {
-  return emailRules.map((rule) => ({
-    label: rule.label,
-    passed: rule.test(email),
-  }));
-}
 
 function isEmailValid(email) {
   return emailRules.every((rule) => rule.test(email.trim()));
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 const SignupModal = ({ onClose, onSwitchToLogin }) => {
   const navigate = useNavigate();
@@ -154,7 +123,6 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
 
       setSuccessMsg(res.message || "Account created successfully!");
       setTimeout(() => onSwitchToLogin(), 1200);
-
     } catch (err) {
       setErrorMsg(err.message || "Registration failed");
     } finally {
@@ -164,10 +132,7 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
 
   const password = formData.password;
   const isValid = isPasswordValid(password);
-
-  // Email rule statuses for live checklist
-  const emailStatuses = getEmailRuleStatuses(formData.email.trim());
-  const allEmailPassed = emailStatuses.every((r) => r.passed);
+  const allEmailPassed = isEmailValid(formData.email.trim());
 
   return (
     <>
@@ -247,7 +212,7 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
                   )}
                 </div>
 
-                {/* Email Address — with live rule checklist */}
+                {/* Email Address */}
                 <div className="input-group">
                   <label>Email Address</label>
                   <input
@@ -258,24 +223,10 @@ const SignupModal = ({ onClose, onSwitchToLogin }) => {
                     onChange={handleChange}
                     required
                   />
-
-                  {/* Live checklist shown while typing */}
                   {emailTouched && formData.email.length > 0 && (
-                    <ul className="email-rules-list">
-                      {emailStatuses.map((rule, i) => (
-                        <li
-                          key={i}
-                          className={rule.passed ? "email-rule passed" : "email-rule failed"}
-                        >
-                          {rule.passed ? "✅" : "❌"} {rule.label}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {/* Final summary once all rules pass */}
-                  {emailTouched && formData.email.length > 0 && allEmailPassed && (
-                    <p className="pwd-status valid">✅ Valid email address</p>
+                    <p className={allEmailPassed ? "pwd-status valid" : "pwd-status invalid"}>
+                      {allEmailPassed ? "✅ Valid email address" : "❌ Please enter a valid email address"}
+                    </p>
                   )}
                 </div>
 

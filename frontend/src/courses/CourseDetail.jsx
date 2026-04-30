@@ -152,6 +152,8 @@ function CourseDetail() {
   const courseIdNum = parseInt(courseId);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("blinklearn_user"));
+  const userRole = user?.role?.toLowerCase();
+  const isStudent = userRole === "student";
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -172,7 +174,10 @@ function CourseDetail() {
 
   const totalDurationStr = (() => {
     if (!lessons.length) return "—";
-    const totalSec = lessons.reduce((acc, l) => acc + (l.duration_seconds || 0), 0);
+    const totalSec = lessons.reduce((acc, l) => {
+      const duration = Number(l.duration || l.duration_seconds || 0);
+      return acc + (Number.isFinite(duration) ? duration : 0);
+    }, 0);
     if (totalSec > 0) {
       const h = Math.floor(totalSec / 3600);
       const m = Math.floor((totalSec % 3600) / 60);
@@ -236,11 +241,15 @@ function CourseDetail() {
 
   const handleEnroll = async () => {
     if (!user) { navigate("/login"); return; }
+    if (!isStudent) {
+      alert("Only students can enroll. Please switch to student mode to enroll.");
+      return;
+    }
     setEnrolling(true);
     try {
       await axios.post(`${BASE}/api/enroll`, { user_id: user.user_id, course_id: courseIdNum });
       setEnrolled(true);
-      alert("Enrolled successfully! 🎉");
+      alert("Enrolled successfully! 🎉\nThis course is now available in My Learning.");
     } catch (err) {
       alert(err.response?.data?.message || "Enrollment failed");
     } finally {
@@ -250,6 +259,10 @@ function CourseDetail() {
 
   const handleBuyNow = () => {
     if (!user) { navigate("/login"); return; }
+    if (!isStudent) {
+      alert("Only students can purchase and enroll in courses. Switch to student mode first.");
+      return;
+    }
     setBuying(true);
     navigate(`/checkout/${courseIdNum}`, {
       state: {
@@ -267,6 +280,10 @@ function CourseDetail() {
 
   const handleAddToCart = async () => {
     if (!user) { navigate("/login"); return; }
+    if (!isStudent) {
+      alert("Only students can add courses to cart. Switch to student mode first.");
+      return;
+    }
     setCartLoading(true);
     try {
       await axios.post(`${BASE}/cart/add`, { user_id: user.user_id, course_id: courseIdNum });
@@ -315,6 +332,26 @@ function CourseDetail() {
       );
     }
     if (isFree) {
+      if (!user) {
+        return (
+          <>
+            <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>
+              {enrolling ? "Enrolling..." : "Login to Enroll"}
+            </button>
+            <p className="cd-guarantee">✅ No payment required</p>
+          </>
+        );
+      }
+      if (!isStudent) {
+        return (
+          <>
+            <button className="cd-action-btn disabled" disabled>
+              Only students can enroll
+            </button>
+            <p className="cd-guarantee">Switch to student mode to enroll and access this course in My Learning.</p>
+          </>
+        );
+      }
       return (
         <>
           <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>

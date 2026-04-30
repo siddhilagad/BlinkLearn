@@ -37,7 +37,7 @@ const Courses = () => {
 
   const stats = [
     { value: courses.length, label: "Total Courses" },
-      { value: new Set(courses.map(c => c.teacher_name)).size, label: "Expert Tutors" },
+      { value: new Set(courses.map(c => c.tutor_name)).size, label: "Expert Tutors" },
     { value: "50K+", label: "Active Students" },
     { value: "4.8★", label: "Avg Rating" },
   ];
@@ -238,10 +238,10 @@ const Courses = () => {
                 <div className="card-body">
                   <div className="teacher-row">
                     <div className="teacher-avatar">
-                      {course.teacher_name?.charAt(0).toUpperCase() || "T"}
+                      {course.tutor_name?.charAt(0).toUpperCase() || "T"}
                     </div>
                     <span className="teacher-name">
-                      {course.teacher_name || user?.name || "Instructor"}
+                      {course.tutor_name || "Instructor"}
                     </span>
                   </div>
                   <h3 className="card-title">{course.title}</h3>

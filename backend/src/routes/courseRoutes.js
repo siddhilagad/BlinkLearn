@@ -151,52 +151,81 @@ router.post(
 
         console.log("✅ Course inserted, ID:", result.insertId);
 
-        const lessonRows = [];
-        let orderIndex = 0;
-
-        parsedSections.forEach((section) => {
-          const sectionTitle = section.title || null;
-          (section.lessons || []).forEach((lesson) => {
-            const videoField = lesson.videoField;
-            const lessonFile = videoField ? filesMap[videoField] : null;
-            const lessonVideo = lessonFile?.filename || null;
-
-            lessonRows.push([
-              result.insertId,
-              sectionTitle,
-              lesson.title || "Untitled Lesson",
-              lesson.type || "video",
-              lesson.duration || null,
-              lesson.description || null,
-              lessonVideo,
-              orderIndex,
-            ]);
-            orderIndex += 1;
-          });
-        });
-
-        const finish = () => {
-          res.json({
+        if (parsedSections.length === 0) {
+          return res.json({
             message: "Course added successfully",
             course_id: result.insertId,
             thumbnail,
             preview_video,
           });
-        };
-
-        if (lessonRows.length === 0) {
-          return finish();
         }
 
+        const sectionRows = parsedSections.map((section, index) => [
+          result.insertId,
+          section.title?.trim() || `Section ${index + 1}`,
+          index,
+        ]);
+
         db.query(
-          `INSERT INTO lessons (course_id, section_title, title, type, duration, description, video_url, order_index) VALUES ?`,
-          [lessonRows],
-          (lessonErr) => {
-            if (lessonErr) {
-              console.error("❌ Lesson insert error:", lessonErr);
-              return res.status(500).json({ message: "Course created but lesson save failed", error: lessonErr.message });
+          `INSERT INTO course_sections (course_id, title, order_index) VALUES ?`,
+          [sectionRows],
+          (sectionErr, sectionResult) => {
+            if (sectionErr) {
+              console.error("❌ Section insert error:", sectionErr);
+              return res.status(500).json({ message: "Course created but section save failed", error: sectionErr.message });
             }
-            finish();
+
+            const firstSectionId = sectionResult.insertId;
+            const sectionIds = Array.from(
+              { length: sectionRows.length },
+              (_, idx) => firstSectionId + idx
+            );
+
+            const lessonRows = [];
+            parsedSections.forEach((section, sectionIndex) => {
+              const sectionId = sectionIds[sectionIndex];
+              (section.lessons || []).forEach((lesson, lessonIndex) => {
+                const videoField = lesson.videoField;
+                const lessonFile = videoField ? filesMap[videoField] : null;
+                const lessonVideo = lessonFile?.filename || null;
+                const durationValue = parseInt(lesson.duration, 10) || 0;
+
+                lessonRows.push([
+                  result.insertId,
+                  sectionId,
+                  lesson.title || "Untitled Lesson",
+                  lesson.type || "video",
+                  durationValue,
+                  lessonVideo,
+                  sectionIndex * 1000 + lessonIndex,
+                ]);
+              });
+            });
+
+            const finish = () => {
+              res.json({
+                message: "Course added successfully",
+                course_id: result.insertId,
+                thumbnail,
+                preview_video,
+              });
+            };
+
+            if (lessonRows.length === 0) {
+              return finish();
+            }
+
+            db.query(
+              `INSERT INTO lessons (course_id, section_id, title, type, duration, video_url, order_index) VALUES ?`,
+              [lessonRows],
+              (lessonErr) => {
+                if (lessonErr) {
+                  console.error("❌ Lesson insert error:", lessonErr);
+                  return res.status(500).json({ message: "Course created but lesson save failed", error: lessonErr.message });
+                }
+                finish();
+              }
+            );
           }
         );
       }
@@ -267,6 +296,56 @@ router.get("/teacher-courses/:id", (req, res) => {
       res.json(result);
     }
   );
+});
+
+// ================= GET USER COURSES =================
+// ================= GET USER COURSES =================
+// Full URL: GET http://localhost:5000/api/courses/user/:userId?role=student|teacher
+router.get("/courses/user/:userId", (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const role = String(req.query.role || "").toLowerCase();
+
+    if (role === "student") {
+      const sql = `
+        SELECT c.*, u.name AS tutor_name
+        FROM enrollments e
+        JOIN courses c ON e.course_id = c.course_id
+        LEFT JOIN users u ON c.teacher_id = u.user_id
+        WHERE e.user_id = ?
+        ORDER BY c.course_id DESC
+      `;
+      db.execute(sql, [userId], (err, result) => {
+        if (err) {
+          console.error("Error fetching enrolled courses:", err);
+          if (!res.headersSent) res.status(500).json({ message: "Error fetching enrolled courses" });
+          return;
+        }
+        if (!res.headersSent) res.json(result);
+      });
+      return;
+    }
+
+    if (role === "teacher") {
+      db.execute(
+        "SELECT * FROM courses WHERE teacher_id = ? ORDER BY course_id DESC",
+        [userId],
+        (err, result) => {
+          if (err) {
+            console.error("Error fetching teacher courses:", err);
+            if (!res.headersSent) res.status(500).json({ message: "Error fetching teacher courses" });
+            return;
+          }
+          if (!res.headersSent) res.json(result);
+        }
+      );
+      return;
+    }
+
+    if (!res.headersSent) res.status(400).json({ message: "Invalid role query parameter" });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // ================= EDIT COURSE =================
@@ -347,20 +426,96 @@ router.post("/enroll", (req, res) => {
     return res.status(400).json({ message: "user_id and course_id are required" });
 
   db.query(
-    "SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?",
-    [user_id, course_id],
-    (err, existing) => {
+    "SELECT role FROM users WHERE user_id = ?",
+    [user_id],
+    (err, userRows) => {
       if (err) return res.status(500).json({ message: "DB error" });
-      if (existing.length > 0)
-        return res.status(400).json({ message: "Already enrolled" });
+      if (userRows.length === 0)
+        return res.status(400).json({ message: "User not found" });
+
+      if (String(userRows[0].role).toLowerCase() !== "student") {
+        return res.status(403).json({ message: "Only students can enroll in courses" });
+      }
 
       db.query(
-        "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)",
+        "SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?",
         [user_id, course_id],
-        (err2) => {
-          if (err2)
-            return res.status(500).json({ message: "Enrollment failed" });
-          res.json({ message: "Enrolled successfully" });
+        (err2, existing) => {
+          if (err2) return res.status(500).json({ message: "DB error" });
+          if (existing.length > 0)
+            return res.status(400).json({ message: "Already enrolled" });
+
+          db.query(
+            "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)",
+            [user_id, course_id],
+            (err3) => {
+              if (err3)
+                return res.status(500).json({ message: "Enrollment failed" });
+              res.json({ message: "Enrolled successfully" });
+            }
+          );
+        }
+      );
+    }
+  );
+});
+
+// ================= GET GLOBAL STATS =================
+router.get("/stats", (req, res) => {
+  const sql = `
+    SELECT
+      (SELECT COUNT(*) FROM users WHERE role = 'student') AS totalStudents,
+      (SELECT COUNT(*) FROM courses) AS totalCourses,
+      (SELECT COUNT(*) FROM users WHERE role = 'teacher') AS totalTeachers
+  `;
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ message: "Failed to fetch stats" });
+    res.json(results[0]);
+  });
+});
+
+// ================= REVIEWS =================
+// GET reviews for a course
+router.get("/course/:courseId/reviews", (req, res) => {
+  const { courseId } = req.params;
+  const sql = `
+    SELECT r.*, u.name, u.profilePhoto as avatar 
+    FROM reviews r
+    JOIN users u ON r.user_id = u.user_id
+    WHERE r.course_id = ?
+    ORDER BY r.created_at DESC
+  `;
+  db.query(sql, [courseId], (err, results) => {
+    if (err) return res.status(500).json({ message: "Failed to fetch reviews" });
+    res.json(results);
+  });
+});
+
+// POST a new review
+router.post("/course/:courseId/reviews", (req, res) => {
+  const { courseId } = req.params;
+  const { user_id, rating, title, body } = req.body;
+
+  if (!user_id || !rating || !title) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  // Check if user already reviewed
+  db.query(
+    "SELECT * FROM reviews WHERE course_id = ? AND user_id = ?",
+    [courseId, user_id],
+    (err, existing) => {
+      if (err) return res.status(500).json({ message: "DB Error" });
+      if (existing.length > 0) {
+        return res.status(400).json({ message: "You have already reviewed this course" });
+      }
+
+      db.query(
+        "INSERT INTO reviews (course_id, user_id, rating, title, body) VALUES (?, ?, ?, ?, ?)",
+        [courseId, user_id, rating, title, body],
+        (insertErr, result) => {
+          if (insertErr) return res.status(500).json({ message: "Failed to submit review" });
+          res.json({ message: "Review submitted successfully", reviewId: result.insertId });
         }
       );
     }

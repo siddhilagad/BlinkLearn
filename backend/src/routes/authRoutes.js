@@ -8,4 +8,4 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);      // ✅ new
 router.post('/reset-password/:token', resetPassword); // ✅ new
 
-module.exports = router;
+module.exports = router;

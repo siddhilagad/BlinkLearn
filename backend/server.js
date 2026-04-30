@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -6,18 +7,61 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
 const app = express();
 const server = http.createServer(app); // ✅ wrap express with http server
 
 // ================= SOCKET.IO =================
+const onlineUsers = new Map(); // socket.id -> userId
+
 const io = new Server(server, {
   cors: { origin: "http://localhost:3000" }
 });
 
 io.on("connection", (socket) => {
   console.log("✅ Socket connected:", socket.id);
-  socket.on("disconnect", () => console.log("❌ Socket disconnected:", socket.id));
+
+  socket.on("user_online", (userId) => {
+    onlineUsers.set(socket.id, userId);
+    io.emit("online_users", Array.from(onlineUsers.values()));
+  });
+
+  socket.on("join_group", () => {
+    socket.join("group_chat");
+  });
+
+  socket.on("group_message", (data) => {
+    const { sender_id, message, sender_name } = data;
+    const sql = "INSERT INTO messages (sender_id, sender_name, message) VALUES (?, ?, ?)";
+    db.query(sql, [sender_id, sender_name, message], (err, result) => {
+      if (!err) {
+        const msg = { id: result.insertId, sender_id, sender_name, message, created_at: new Date() };
+        io.to("group_chat").emit("receive_group_message", msg);
+      }
+    });
+  });
+
+  socket.on("private_message", (data) => {
+    const { sender_id, receiver_id, message, sender_name } = data;
+    const sql = "INSERT INTO messages (sender_id, receiver_id, sender_name, message) VALUES (?, ?, ?, ?)";
+    db.query(sql, [sender_id, receiver_id, sender_name, message], (err, result) => {
+      if (!err) {
+        const msg = { id: result.insertId, sender_id, receiver_id, sender_name, message, created_at: new Date() };
+        
+        // Find receiver's socket
+        for (let [socketId, uid] of onlineUsers.entries()) {
+          if (uid === receiver_id || uid === sender_id) {
+            io.to(socketId).emit("receive_private_message", msg);
+          }
+        }
+      }
+    });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Socket disconnected:", socket.id);
+    onlineUsers.delete(socket.id);
+    io.emit("online_users", Array.from(onlineUsers.values()));
+  });
 });
 
 // ================= UPLOADS FOLDER =================
@@ -35,10 +79,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ================= DATABASE =================
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "Sanika@123",
-  database: "blinklearn",
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASS || "",
+  database: process.env.DB_NAME || "blinklearn",
 });
 
 db.connect((err) => {
@@ -62,6 +106,38 @@ db.connect((err) => {
     `;
     db.query(createLessonsTable, (createErr) => {
       if (createErr) console.error("❌ Failed to ensure lessons table:", createErr);
+    });
+
+    const createMessagesTable = `
+      CREATE TABLE IF NOT EXISTS messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        sender_id INT NOT NULL,
+        receiver_id INT DEFAULT NULL,
+        sender_name VARCHAR(255),
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    db.query(createMessagesTable, (err) => {
+      if (err) console.error("❌ Failed to ensure messages table:", err);
+    });
+
+    const createReviewsTable = `
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        course_id INT NOT NULL,
+        user_id INT NOT NULL,
+        rating INT NOT NULL CHECK(rating >= 1 AND rating <= 5),
+        title VARCHAR(255),
+        body TEXT,
+        helpful INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    db.query(createReviewsTable, (err) => {
+      if (err) console.error("❌ Failed to ensure reviews table:", err);
     });
   }
 });
@@ -137,6 +213,15 @@ app.put("/switch-role/:userId", (req, res) => {
   });
 });
 
+// ================= ONBOARDING =================
+app.put("/api/onboarding-done/:userId", (req, res) => {
+  const { userId } = req.params;
+  db.query("UPDATE users SET onboarding_done = 1 WHERE user_id = ?", [userId], (err) => {
+    if (err) return res.status(500).json({ message: "Failed to update onboarding status" });
+    res.json({ message: "Onboarding completed successfully" });
+  });
+});
+
 // ================= STUDENT STATS =================
 app.get("/student-stats/:userId", (req, res) => {
   const { userId } = req.params;
@@ -185,12 +270,44 @@ app.get("/check-enrollment/:userId/:courseId", (req, res) => {
   );
 });
 
+// ================= CHAT ROUTES =================
+app.get("/users", (req, res) => {
+  db.query("SELECT user_id, name, role FROM users", (err, result) => {
+    if (err) return res.status(500).json({ message: "Error fetching users" });
+    res.json(result);
+  });
+});
+
+app.get("/messages/group", (req, res) => {
+  db.query("SELECT * FROM messages WHERE receiver_id IS NULL ORDER BY created_at ASC", (err, result) => {
+    if (err) return res.status(500).json({ message: "Error fetching group messages" });
+    res.json(result);
+  });
+});
+
+app.get("/messages/private/:user1/:user2", (req, res) => {
+  const { user1, user2 } = req.params;
+  const sql = `
+    SELECT * FROM messages 
+    WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+    ORDER BY created_at ASC
+  `;
+  db.query(sql, [user1, user2, user2, user1], (err, result) => {
+    if (err) return res.status(500).json({ message: "Error fetching private messages" });
+    res.json(result);
+  });
+});
+
+// ================= MOUNT AUTH ROUTES =================
+const authRoutes = require("./src/routes/authRoutes");
+app.use("/api/auth", authRoutes);
+
 // ================= MOUNT COURSE ROUTES =================
 const courseRoutes = require("./src/routes/courseRoutes");
 app.use("/api", courseRoutes);
 app.get('/api/course/:courseId/lessons', (req, res) => {
   db.query(
-    'SELECT * FROM lessons WHERE course_id = ? ORDER BY order_index ASC, lesson_id ASC',
+    'SELECT * FROM lessons WHERE course_id = ? ORDER BY order_index ASC',
     [req.params.courseId],
     (err, rows) => {
       if (err) {

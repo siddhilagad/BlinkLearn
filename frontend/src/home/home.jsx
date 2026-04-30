@@ -7,6 +7,7 @@ function Home() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({ totalStudents: 0, totalCourses: 0, totalTeachers: 0 });
 
   useEffect(() => {
     fetchCourses();
@@ -29,7 +30,28 @@ function Home() {
     }
   };
 
-  // ✅ Single helper — call this on every skill click
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/stats");
+      setStats(res.data);
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourses();
+    fetchStats();
+    const storedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
+    setUser(storedUser);
+    const updateUser = () => {
+      const updatedUser = JSON.parse(localStorage.getItem("blinklearn_user"));
+      setUser(updatedUser);
+    };
+    window.addEventListener("blinklearn:userChanged", updateUser);
+    return () => window.removeEventListener("blinklearn:userChanged", updateUser);
+  }, []);
+
   const goToSearch = (skill) => {
     navigate(`/courses?search=${encodeURIComponent(skill)}`);
   };
@@ -66,9 +88,9 @@ function Home() {
 
       {/* STATS SECTION */}
       <section className="stats">
-        <div><h2>10K+</h2><p>Active Learners</p></div>
-        <div><h2>500+</h2><p>Video Lessons</p></div>
-        <div><h2>100+</h2><p>Expert Tutors</p></div>
+        <div><h2>{stats.totalStudents || "0"}+</h2><p>Active Learners</p></div>
+        <div><h2>{stats.totalCourses || "0"}+</h2><p>Video Lessons</p></div>
+        <div><h2>{stats.totalTeachers || "0"}+</h2><p>Expert Tutors</p></div>
         <div><h2>50+</h2><p>Course Categories</p></div>
       </section>
 
@@ -120,6 +142,7 @@ function Home() {
                 )}
                 <div className="course-card-body">
                   <h3>{course.title}</h3>
+                  <p className="course-tutor">By: {course.tutor_name || "Unknown Tutor"}</p>
                   <p>{course.description}</p>
                   <button className="course-btn">Explore</button>
                 </div>

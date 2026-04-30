@@ -82,10 +82,10 @@ function Wishlist() {
               <div className="wl-body">
                 <div className="wl-teacher-row">
                   <div className="wl-avatar">
-                    {course.teacher_name?.charAt(0).toUpperCase() || "T"}
+                    {course.tutor_name?.charAt(0).toUpperCase() || "T"}
                   </div>
                   <span className="wl-teacher-name">
-                    {course.teacher_name || "Instructor"}
+                    {course.tutor_name || "Instructor"}
                   </span>
                 </div>
 

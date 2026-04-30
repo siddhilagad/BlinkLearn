@@ -5,6 +5,21 @@ import { addCourse } from "../../api/api";
 // ─── Helpers ─────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+const parseDurationSeconds = (value) => {
+  if (!value) return 0;
+  const str = String(value).trim();
+  const parts = str.split(":");
+  if (parts.length === 2 && parts[0] !== "" && parts[1] !== "") {
+    const minutes = Number(parts[0]);
+    const seconds = Number(parts[1]);
+    if (!Number.isNaN(minutes) && !Number.isNaN(seconds)) {
+      return minutes * 60 + seconds;
+    }
+  }
+  const raw = Number(str);
+  return Number.isFinite(raw) ? raw : 0;
+};
+
 const makeLesson = () => ({
   id: uid(),
   title: "",
@@ -160,7 +175,7 @@ export default function AddCourse() {
         return {
           title: lesson.title,
           type: lesson.type,
-          duration: lesson.duration,
+          duration: parseDurationSeconds(lesson.duration),
           description: lesson.description || null,
           videoField: lessonVideoField,
           sectionTitle: section.title,

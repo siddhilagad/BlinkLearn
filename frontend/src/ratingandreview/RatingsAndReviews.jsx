@@ -1,35 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import "./RatingsAndReviews.css";
 
-// ── Sample data ──────────────────────────────────────────────────────────────
-const INITIAL_REVIEWS = [
-  {
-    id: 1, name: "Rahul Sharma", avatar: "R", rating: 5, date: "April 20, 2026",
-    title: "Absolutely loved this course!",
-    body: "The content was well-structured and easy to follow. The hands-on practice section was my favourite part. Highly recommend to anyone starting out.",
-    helpful: 24, voted: false,
-  },
-  {
-    id: 2, name: "Priya Mehta", avatar: "P", rating: 4, date: "April 15, 2026",
-    title: "Great for beginners",
-    body: "Covers all the basics and more. I wish there were more advanced examples, but overall a solid course with great explanations.",
-    helpful: 18, voted: false,
-  },
-  {
-    id: 3, name: "Arjun Nair", avatar: "A", rating: 5, date: "April 10, 2026",
-    title: "Best cooking course online!",
-    body: "I've tried multiple platforms and this is by far the most comprehensive. The instructor's style is engaging and the content is very practical.",
-    helpful: 31, voted: false,
-  },
-  {
-    id: 4, name: "Sneha Kapoor", avatar: "S", rating: 3, date: "March 28, 2026",
-    title: "Decent but could be better",
-    body: "Some sections felt a bit rushed. Would appreciate more detailed explanations in the Advanced Topics lesson. Otherwise a good starting point.",
-    helpful: 9, voted: false,
-  },
-];
-
-const RATING_DIST = { 5: 68, 4: 20, 3: 7, 2: 3, 1: 2 };
 const AVATAR_COLORS = { R:"#7c3aed", P:"#db2777", A:"#0ea5e9", S:"#10b981", M:"#f59e0b", default:"#6366f1" };
 const STAR_LABELS = ["","Poor","Fair","Good","Very Good","Excellent"];
 
@@ -157,22 +129,68 @@ const WriteReviewForm = ({ onSubmit, onCancel }) => {
 };
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function RatingsAndReviews() {
-  const [reviews, setReviews]     = useState(INITIAL_REVIEWS);
+export default function RatingsAndReviews({ courseId }) {
+  const user = JSON.parse(localStorage.getItem("blinklearn_user"));
+  const isStudent = user?.role === "student";
+
+  const [reviews, setReviews]     = useState([]);
   const [showForm, setShowForm]   = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [filter, setFilter]       = useState(0);
   const [sort, setSort]           = useState("recent");
+  const [errorMsg, setErrorMsg]   = useState("");
 
-  const avgRating = (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1);
+  useEffect(() => {
+    fetchReviews();
+  }, [courseId]);
+
+  const fetchReviews = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/course/${courseId}/reviews`);
+      const formatted = res.data.map(r => ({
+        ...r,
+        avatar: r.avatar || (r.name ? r.name.charAt(0).toUpperCase() : "U"),
+        date: new Date(r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+      }));
+      setReviews(formatted);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    }
+  };
+
+  const avgRating = reviews.length > 0 
+    ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1)
+    : "0.0";
+
+  // Calculate rating distribution
+  const ratingDist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  reviews.forEach(r => ratingDist[r.rating]++);
+  for (let i = 1; i <= 5; i++) {
+    ratingDist[i] = reviews.length > 0 ? Math.round((ratingDist[i] / reviews.length) * 100) : 0;
+  }
 
   const handleHelpful = (id) => setReviews(prev=>prev.map(r=>r.id===id?{...r,helpful:r.voted?r.helpful-1:r.helpful+1,voted:!r.voted}:r));
 
-  const handleSubmit = ({ rating, title, body }) => {
-    setReviews(prev=>[{id:Date.now(),name:"Anushka",avatar:"A",rating,date:"April 29, 2026",title,body,helpful:0,voted:false},...prev]);
-    setShowForm(false);
-    setSubmitted(true);
-    setTimeout(()=>setSubmitted(false),3500);
+  const handleSubmit = async ({ rating, title, body }) => {
+    if (!user) {
+      setErrorMsg("You must be logged in to review.");
+      return;
+    }
+    try {
+      await axios.post(`http://localhost:5000/api/course/${courseId}/reviews`, {
+        user_id: user.user_id,
+        rating,
+        title,
+        body
+      });
+      setShowForm(false);
+      setSubmitted(true);
+      setTimeout(()=>setSubmitted(false),3500);
+      fetchReviews(); // Refresh reviews
+    } catch (err) {
+      console.error("Failed to submit review", err);
+      alert(err.response?.data?.message || "Failed to submit review");
+    }
   };
 
   const sorted = [...reviews]
@@ -192,7 +210,7 @@ export default function RatingsAndReviews() {
           <h2 className="rar-header__title">Ratings &amp; Reviews</h2>
           <p className="rar-header__subtitle">{reviews.length} reviews • verified learners only</p>
         </div>
-        {!showForm && (
+        {isStudent && !showForm && (
           <button className="rar-btn-primary" onClick={()=>setShowForm(true)}>+ Write a Review</button>
         )}
       </div>
@@ -206,7 +224,7 @@ export default function RatingsAndReviews() {
           <div className="rar-score__label">Course Rating</div>
         </div>
         <div className="rar-bars">
-          {[5,4,3,2,1].map(s=><RatingBar key={s} star={s} pct={RATING_DIST[s]}/>)}
+          {[5,4,3,2,1].map(s=><RatingBar key={s} star={s} pct={ratingDist[s]}/>)}
         </div>
       </div>
 
