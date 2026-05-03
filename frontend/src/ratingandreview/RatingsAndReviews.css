@@ -550,3 +550,18 @@
     text-align: center;
   }
 }
+
+
+
+
+
+
+
+.rar-root {
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  max-width: 100%;  /* Changed from 860px to fit within cd-left */
+  margin: 0;        /* Changed from 0 auto */
+  padding: 0;       /* Changed from 32px 16px */
+  color: #111827;
+  box-sizing: border-box;
+}

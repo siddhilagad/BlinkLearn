@@ -387,15 +387,7 @@ export default function AddCourse() {
                                 value={lesson.title}
                                 onChange={(e) => updateLesson(section.id, lesson.id, "title", e.target.value)}
                               />
-                              <select
-                                className="ac-lesson-type-select"
-                                value={lesson.type}
-                                onChange={(e) => updateLesson(section.id, lesson.id, "type", e.target.value)}
-                              >
-                                <option value="video">🎬 Video</option>
-                                <option value="article">📄 Article</option>
-                                <option value="quiz">🧩 Quiz</option>
-                              </select>
+                              
                               <input
                                 className="ac-lesson-duration-input"
                                 placeholder="0:00"

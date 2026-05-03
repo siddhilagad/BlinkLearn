@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FaPlay, FaPause, FaExpand, FaVolumeUp, FaVolumeMute, FaShoppingCart } from "react-icons/fa";
 import "./CourseDetail.css";
 import RatingsAndReviews from "../ratingandreview/RatingsAndReviews";
-
+import EditCourse from "./EditCourse";
 
 const BASE = "http://localhost:5000";
 
@@ -154,6 +154,9 @@ function CourseDetail() {
   const user = JSON.parse(localStorage.getItem("blinklearn_user"));
   const userRole = user?.role?.toLowerCase();
   const isStudent = userRole === "student";
+  const isTeacher = userRole === "teacher";
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -166,6 +169,7 @@ function CourseDetail() {
 
   const [lessons, setLessons] = useState([]);
   const [currentLesson, setCurrentLesson] = useState(null);
+  const [currentVideoUrl, setCurrentVideoUrl] = useState(null);   // ← New
 
   const completedCount = lessons.filter((l) => l.completed).length;
   const progressPercent = lessons.length
@@ -214,18 +218,19 @@ function CourseDetail() {
         const res = await axios.get(`${BASE}/api/course/${courseIdNum}/lessons`);
         const data = Array.isArray(res.data) ? res.data : [];
         setLessons(data);
-        if (data.length > 0) setCurrentLesson(data[0]);
+        if (data.length > 0) {
+          setCurrentLesson(data[0]);
+          setCurrentVideoUrl(buildMediaUrl(data[0].video_url || data[0].video));
+        }
       } catch (err) {
         console.error("Lessons fetch failed — using fallback:", err);
         const fallback = [
-          { id: 1, title: "Introduction & Overview", duration: "7:00", completed: true },
-          { id: 2, title: "Core Concepts", duration: "6:30", completed: true },
-          { id: 3, title: "Hands-on Practice", duration: "8:15", completed: true },
-          { id: 4, title: "Advanced Topics", duration: "10:00", completed: false },
-          { id: 5, title: "Final Project", duration: "12:00", completed: false },
+          { id: 1, title: "1. learn basic", duration: "7:00", completed: true, video_url: null },
+          { id: 2, title: "2. introduction", duration: "8:15", completed: false, video_url: null },
         ];
         setLessons(fallback);
         setCurrentLesson(fallback[0]);
+        setCurrentVideoUrl(null); // Will use course preview
       }
     };
 
@@ -249,7 +254,7 @@ function CourseDetail() {
     try {
       await axios.post(`${BASE}/api/enroll`, { user_id: user.user_id, course_id: courseIdNum });
       setEnrolled(true);
-      alert("Enrolled successfully! 🎉\nThis course is now available in My Learning.");
+      alert("Enrolled successfully! 🎉");
     } catch (err) {
       alert(err.response?.data?.message || "Enrollment failed");
     } finally {
@@ -260,30 +265,14 @@ function CourseDetail() {
   const handleBuyNow = () => {
     if (!user) { navigate("/login"); return; }
     if (!isStudent) {
-      alert("Only students can purchase and enroll in courses. Switch to student mode first.");
+      alert("Only students can purchase.");
       return;
     }
-    setBuying(true);
-    navigate(`/checkout/${courseIdNum}`, {
-      state: {
-        course: {
-          course_id: courseIdNum,
-          title: course.title,
-          price: course.price,
-          thumbnail: course.thumbnail || null,
-          level: course.level || "",
-        },
-      },
-    });
-    setBuying(false);
+    navigate(`/checkout/${courseIdNum}`);
   };
 
   const handleAddToCart = async () => {
     if (!user) { navigate("/login"); return; }
-    if (!isStudent) {
-      alert("Only students can add courses to cart. Switch to student mode first.");
-      return;
-    }
     setCartLoading(true);
     try {
       await axios.post(`${BASE}/cart/add`, { user_id: user.user_id, course_id: courseIdNum });
@@ -295,6 +284,21 @@ function CourseDetail() {
       setCartLoading(false);
     }
   };
+
+  // Show Edit Course Page
+  if (isEditing) {
+    return (
+      <EditCourse
+        course={course}
+        onBack={() => setIsEditing(false)}
+        onSave={(updatedData) => {
+          setCourse(prev => ({ ...prev, ...updatedData }));
+          setIsEditing(false);
+          alert("Course updated successfully! 🎉");
+        }}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -318,10 +322,7 @@ function CourseDetail() {
   if (!course) return null;
 
   const thumbnailUrl = buildMediaUrl(course.thumbnail);
-  const videoUrl = buildMediaUrl(course.preview_video);
-
-  console.log("🖼 thumbnailUrl →", thumbnailUrl);
-  console.log("🎬 videoUrl →", videoUrl);
+  const mainVideoUrl = buildMediaUrl(course.preview_video);
 
   const renderActionButtons = () => {
     if (enrolled) {
@@ -331,56 +332,20 @@ function CourseDetail() {
         </button>
       );
     }
+    // ... (Your existing action buttons logic) ...
     if (isFree) {
-      if (!user) {
-        return (
-          <>
-            <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>
-              {enrolling ? "Enrolling..." : "Login to Enroll"}
-            </button>
-            <p className="cd-guarantee">✅ No payment required</p>
-          </>
-        );
-      }
-      if (!isStudent) {
-        return (
-          <>
-            <button className="cd-action-btn disabled" disabled>
-              Only students can enroll
-            </button>
-            <p className="cd-guarantee">Switch to student mode to enroll and access this course in My Learning.</p>
-          </>
-        );
-      }
       return (
-        <>
-          <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>
-            {enrolling ? "Enrolling..." : "Enroll Now — Free"}
-          </button>
-          <p className="cd-guarantee">✅ No payment required</p>
-        </>
+        <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>
+          {enrolling ? "Enrolling..." : "Enroll Now — Free"}
+        </button>
       );
     }
     return (
       <>
-        <button className="cd-action-btn buy" onClick={handleBuyNow} disabled={buying}>
-          {buying ? "Redirecting..." : "💳 Buy Now"}
+        <button className="cd-action-btn buy" onClick={handleBuyNow}>💳 Buy Now</button>
+        <button className="cd-action-btn cart" onClick={handleAddToCart}>
+          <FaShoppingCart /> Add to Cart
         </button>
-        <button
-          className={`cd-action-btn cart ${cartAdded ? "cart-added" : ""}`}
-          onClick={handleAddToCart}
-          disabled={cartAdded || cartLoading}
-        >
-          {cartLoading ? "Adding..." : cartAdded ? "✓ Added to Cart!" : (
-            <><FaShoppingCart style={{ marginRight: "8px" }} />Add to Cart</>
-          )}
-        </button>
-        {cartAdded && (
-          <button className="cd-go-to-cart-btn" onClick={() => navigate("/cart")}>
-            🛒 Go to Cart
-          </button>
-        )}
-        <p className="cd-guarantee">🔒 Secure Enrollment</p>
       </>
     );
   };
@@ -393,9 +358,12 @@ function CourseDetail() {
       </div>
 
       <div className="cd-wrapper">
-        {/* LEFT */}
+        {/* LEFT - Video Player */}
         <div className="cd-left">
-          <VideoPlayer videoUrl={videoUrl} thumbnail={thumbnailUrl} />
+          <VideoPlayer 
+            videoUrl={currentVideoUrl || mainVideoUrl} 
+            thumbnail={thumbnailUrl} 
+          />
 
           {enrolled && (
             <div className="cd-progress-overlay-bar">
@@ -406,6 +374,7 @@ function CourseDetail() {
             </div>
           )}
 
+          {/* Rest of your left content remains same */}
           <div className="cd-info-section">
             <h1 className="cd-title">{course.title}</h1>
             <p className="cd-description">{course.description}</p>
@@ -423,6 +392,13 @@ function CourseDetail() {
                 <span>{totalDurationStr}</span>
               </div>
               <span className="cd-badge level">{course.level}</span>
+
+              {isTeacher && (
+                <button className="cd-edit-btn" onClick={() => setIsEditing(true)}>
+                  ✏️ Edit Course
+                </button>
+              )}
+
               {course.category && <span className="cd-badge category">{course.category}</span>}
             </div>
           </div>
@@ -444,12 +420,12 @@ function CourseDetail() {
             </div>
           </div>
 
-          {/* ✅ Ratings & Reviews — correctly placed here */}
-          <RatingsAndReviews courseId={courseIdNum} />
-
+          <div className="cd-reviews-card">
+            <RatingsAndReviews courseId={courseIdNum} />
+          </div>
         </div>
 
-        {/* RIGHT SIDEBAR */}
+        {/* RIGHT SIDEBAR - Clickable Lessons */}
         <div className="cd-right">
           <div className="cd-sidebar-card">
             <h3 className="cd-sidebar-title">Course Content</h3>
@@ -459,12 +435,17 @@ function CourseDetail() {
               {lessons.map((lesson, idx) => (
                 <div
                   key={lesson.id}
-                  onClick={() => setCurrentLesson(lesson)}
+                  onClick={() => {
+                    setCurrentLesson(lesson);
+                    const lessonVideo = buildMediaUrl(lesson.video_url || lesson.video);
+                    setCurrentVideoUrl(lessonVideo);
+                  }}
                   className={[
                     "cd-lesson-item",
                     lesson.completed ? "completed" : "",
                     currentLesson?.id === lesson.id ? "active" : "",
                   ].join(" ").trim()}
+                  style={{ cursor: "pointer" }}
                 >
                   <div className="cd-lesson-icon">
                     {lesson.completed
