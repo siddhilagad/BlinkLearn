@@ -6,8 +6,6 @@ import "./courses.css";
 
 const BASE = "http://localhost:5000";
 
-// ── Smart thumbnail URL builder ──
-// Handles: full URL, "uploads/file.jpg", "file.jpg", null/undefined
 function getThumbnailUrl(thumbnail) {
   if (!thumbnail || String(thumbnail).trim() === "" || thumbnail === "null") {
     return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&auto=format&fit=crop";
@@ -37,7 +35,7 @@ const Courses = () => {
 
   const stats = [
     { value: courses.length, label: "Total Courses" },
-      { value: new Set(courses.map(c => c.tutor_name)).size, label: "Expert Tutors" },
+    { value: new Set(courses.map(c => c.tutor_name)).size, label: "Expert Tutors" },
     { value: "50K+", label: "Active Students" },
     { value: "4.8★", label: "Avg Rating" },
   ];
@@ -208,12 +206,11 @@ const Courses = () => {
                 onClick={() => navigate(`/course/${course.course_id}`)}
               >
                 <div className="card-image-wrapper">
-                  {/* ✅ Smart thumbnail URL — handles all storage formats */}
                   <img
                     src={getThumbnailUrl(course.thumbnail)}
                     alt={course.title}
                     onError={(e) => {
-                      e.target.onerror = null; // prevent infinite loop
+                      e.target.onerror = null;
                       e.target.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&auto=format&fit=crop";
                     }}
                   />
@@ -246,14 +243,20 @@ const Courses = () => {
                   </div>
                   <h3 className="card-title">{course.title}</h3>
                   <p className="card-desc">{course.description}</p>
+
+                  {/* ✅ Backend वरून avg_rating आणि total_reviews */}
                   <div className="rating-row">
                     <FaStar className="star-icon" />
-                    <span className="rating-num">4.8</span>
-                    <span className="rating-count">(1,200)</span>
+                    <span className="rating-num">
+                      {course.avg_rating > 0 ? course.avg_rating : "New"}
+                    </span>
+                    <span className="rating-count">
+                      ({course.total_reviews || 0} reviews)
+                    </span>
                   </div>
+
                   <div className="meta-row">
-                    <span className="meta-item"><FaUserFriends /> 12,453</span>
-                    <span className="meta-item"><FaClock /> 3h 20m</span>
+                    <span className="meta-item"><FaUserFriends /> {course.total_students || 0}</span>
                     <span className="meta-item level-tag">{course.level}</span>
                   </div>
                   <div className="card-footer">
@@ -261,7 +264,7 @@ const Courses = () => {
                       {course.price > 0 ? `₹ ${course.price}` : "Free"}
                     </span>
                     <span className="lessons-count">
-                      <FaPlayCircle /> 24 lessons
+                      <FaPlayCircle /> {course.total_lessons || 0} lessons
                     </span>
                   </div>
                 </div>

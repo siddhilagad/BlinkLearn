@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaPlay, FaPause, FaExpand, FaVolumeUp, FaVolumeMute, FaShoppingCart } from "react-icons/fa";
+import { FaPlay, FaPause, FaExpand, FaVolumeUp, FaVolumeMute, FaShoppingCart, FaStar } from "react-icons/fa";
 import "./CourseDetail.css";
 import RatingsAndReviews from "../ratingandreview/RatingsAndReviews";
 import EditCourse from "./EditCourse";
@@ -13,9 +13,7 @@ function buildMediaUrl(value) {
   let v = String(value).trim();
   v = v.replace(/\\/g, "/");
   if (v.startsWith("http://") || v.startsWith("https://")) return v;
-  if (v.startsWith("uploads/") || v.startsWith("/uploads/")) {
-    return `${BASE}/${v.replace(/^\//, "")}`;
-  }
+  if (v.startsWith("uploads/") || v.startsWith("/uploads/")) return `${BASE}/${v.replace(/^\//, "")}`;
   return `${BASE}/uploads/${v}`;
 }
 
@@ -46,8 +44,7 @@ function VideoPlayer({ videoUrl, thumbnail }) {
 
   const handleSeek = (e) => {
     if (!videoRef.current) return;
-    const newTime = (e.target.value / 100) * videoRef.current.duration;
-    videoRef.current.currentTime = newTime;
+    videoRef.current.currentTime = (e.target.value / 100) * videoRef.current.duration;
     setProgress(Number(e.target.value));
   };
 
@@ -69,77 +66,111 @@ function VideoPlayer({ videoUrl, thumbnail }) {
   if (!videoUrl || videoError) {
     return (
       <div className="cd-hero">
-        {thumbnail && !imgError ? (
-          <img
-            src={thumbnail}
-            alt="Course Thumbnail"
-            className="cd-hero-img"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="cd-hero-placeholder">
-            <span>📚</span>
-          </div>
-        )}
+        {thumbnail && !imgError
+          ? <img src={thumbnail} alt="Course Thumbnail" className="cd-hero-img" onError={() => setImgError(true)} />
+          : <div className="cd-hero-placeholder"><span>📚</span></div>
+        }
       </div>
     );
   }
 
   return (
-    <div
-      className="cd-video-wrapper"
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => playing && setShowControls(false)}
-    >
+    <div className="cd-video-wrapper" onMouseEnter={() => setShowControls(true)} onMouseLeave={() => playing && setShowControls(false)}>
       {!playing && progress === 0 && thumbnail && !imgError && (
         <div className="cd-video-thumb-overlay" onClick={togglePlay}>
-          <img
-            src={thumbnail}
-            alt="Course Preview"
-            onError={() => setImgError(true)}
-          />
+          <img src={thumbnail} alt="Course Preview" onError={() => setImgError(true)} />
           <div className="cd-play-overlay-btn"><FaPlay /></div>
         </div>
       )}
-
       {!playing && progress === 0 && (!thumbnail || imgError) && (
         <div className="cd-video-no-thumb" onClick={togglePlay}>
           <div className="cd-play-overlay-btn"><FaPlay /></div>
         </div>
       )}
-
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        poster={thumbnail || undefined}
-        controls
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={handleEnded}
-        onClick={togglePlay}
-        onError={() => setVideoError(true)}
-        className="cd-video-element"
-        preload="metadata"
-      />
-
+      <video ref={videoRef} src={videoUrl} poster={thumbnail || undefined} controls
+        onTimeUpdate={handleTimeUpdate} onEnded={handleEnded} onClick={togglePlay}
+        onError={() => setVideoError(true)} className="cd-video-element" preload="metadata" />
       {showControls && (playing || progress > 0) && (
         <div className="cd-video-controls">
-          <input
-            type="range" min="0" max="100"
-            value={progress} onChange={handleSeek}
-            className="cd-progress-range"
-          />
+          <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="cd-progress-range" />
           <div className="cd-controls-row">
-            <button onClick={togglePlay} className="cd-ctrl-btn">
-              {playing ? <FaPause /> : <FaPlay />}
-            </button>
-            <button onClick={toggleMute} className="cd-ctrl-btn">
-              {muted ? <FaVolumeMute /> : <FaVolumeUp />}
-            </button>
+            <button onClick={togglePlay} className="cd-ctrl-btn">{playing ? <FaPause /> : <FaPlay />}</button>
+            <button onClick={toggleMute} className="cd-ctrl-btn">{muted ? <FaVolumeMute /> : <FaVolumeUp />}</button>
             <span className="cd-ctrl-label">Course Preview</span>
-            <button onClick={handleFullscreen} className="cd-ctrl-btn" style={{ marginLeft: "auto" }}>
-              <FaExpand />
-            </button>
+            <button onClick={handleFullscreen} className="cd-ctrl-btn" style={{ marginLeft: "auto" }}><FaExpand /></button>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===== Teacher Rating Stars =====
+function TeacherRating({ teacherId, isStudent }) {
+  const [hoverStar, setHoverStar] = useState(0);
+  const [selectedStar, setSelectedStar] = useState(0);
+  const [avgRating, setAvgRating] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [alreadyRated, setAlreadyRated] = useState(false);
+  const user = JSON.parse(localStorage.getItem("blinklearn_user"));
+
+  useEffect(() => {
+    if (!teacherId) return;
+    axios.get(`${BASE}/api/teacher-rating/${teacherId}`)
+      .then(res => setAvgRating(res.data.avgRating || 0))
+      .catch(() => {});
+    if (user && isStudent) {
+      axios.get(`${BASE}/api/teacher-rating/check/${teacherId}/${user.user_id}`)
+        .then(res => { if (res.data.rated) { setAlreadyRated(true); setSelectedStar(res.data.rating); } })
+        .catch(() => {});
+    }
+  }, [teacherId]);
+
+  const handleRate = async (star) => {
+    if (!user || !isStudent || alreadyRated) return;
+    setSelectedStar(star);
+    try {
+      await axios.post(`${BASE}/api/teacher-rating`, { teacher_id: teacherId, student_id: user.user_id, rating: star });
+      setSubmitted(true);
+      setAlreadyRated(true);
+      const res = await axios.get(`${BASE}/api/teacher-rating/${teacherId}`);
+      setAvgRating(res.data.avgRating || 0);
+    } catch (err) {
+      alert(err.response?.data?.message || "Rating failed");
+    }
+  };
+
+  const activeStar = hoverStar || selectedStar;
+
+  return (
+    <div className="cd-teacher-rating">
+      <div className="cd-teacher-avg-rating">
+        {[1,2,3,4,5].map(s => (
+          <FaStar key={s} style={{ color: s <= Math.round(avgRating) ? "#f59e0b" : "#d1d5db", fontSize: "14px" }} />
+        ))}
+        <span style={{ marginLeft: "6px", fontSize: "13px", color: "#6b7280" }}>
+          {avgRating > 0 ? `${avgRating} avg rating` : "No ratings yet"}
+        </span>
+      </div>
+      {isStudent && (
+        <div style={{ marginTop: "8px" }}>
+          {alreadyRated || submitted ? (
+            <p style={{ fontSize: "12px", color: "#10b981" }}>✅ तुम्ही {selectedStar} ★ rating दिली आहे</p>
+          ) : (
+            <div>
+              <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "4px" }}>Teacher ला rating द्या:</p>
+              <div style={{ display: "flex", gap: "4px" }}>
+                {[1,2,3,4,5].map(s => (
+                  <FaStar key={s}
+                    style={{ color: s <= activeStar ? "#f59e0b" : "#d1d5db", fontSize: "20px", cursor: "pointer", transition: "color 0.15s" }}
+                    onMouseEnter={() => setHoverStar(s)}
+                    onMouseLeave={() => setHoverStar(0)}
+                    onClick={() => handleRate(s)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -157,7 +188,6 @@ function CourseDetail() {
   const isTeacher = userRole === "teacher";
 
   const [isEditing, setIsEditing] = useState(false);
-
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -166,15 +196,12 @@ function CourseDetail() {
   const [cartAdded, setCartAdded] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
   const [buying, setBuying] = useState(false);
-
   const [lessons, setLessons] = useState([]);
   const [currentLesson, setCurrentLesson] = useState(null);
-  const [currentVideoUrl, setCurrentVideoUrl] = useState(null);   // ← New
+  const [currentVideoUrl, setCurrentVideoUrl] = useState(null);
 
   const completedCount = lessons.filter((l) => l.completed).length;
-  const progressPercent = lessons.length
-    ? Math.round((completedCount / lessons.length) * 100)
-    : 0;
+  const progressPercent = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
 
   const totalDurationStr = (() => {
     if (!lessons.length) return "—";
@@ -223,14 +250,14 @@ function CourseDetail() {
           setCurrentVideoUrl(buildMediaUrl(data[0].video_url || data[0].video));
         }
       } catch (err) {
-        console.error("Lessons fetch failed — using fallback:", err);
+        console.error("Lessons fetch failed:", err);
         const fallback = [
           { id: 1, title: "1. learn basic", duration: "7:00", completed: true, video_url: null },
           { id: 2, title: "2. introduction", duration: "8:15", completed: false, video_url: null },
         ];
         setLessons(fallback);
         setCurrentLesson(fallback[0]);
-        setCurrentVideoUrl(null); // Will use course preview
+        setCurrentVideoUrl(null);
       }
     };
 
@@ -239,17 +266,11 @@ function CourseDetail() {
     fetchLessons();
   }, [courseId]);
 
-  const isFree =
-    course?.type?.toLowerCase() === "free" ||
-    !course?.price ||
-    parseFloat(course?.price) === 0;
+  const isFree = course?.type?.toLowerCase() === "free" || !course?.price || parseFloat(course?.price) === 0;
 
   const handleEnroll = async () => {
     if (!user) { navigate("/login"); return; }
-    if (!isStudent) {
-      alert("Only students can enroll. Please switch to student mode to enroll.");
-      return;
-    }
+    if (!isStudent) { alert("Only students can enroll. Please switch to student mode to enroll."); return; }
     setEnrolling(true);
     try {
       await axios.post(`${BASE}/api/enroll`, { user_id: user.user_id, course_id: courseIdNum });
@@ -264,15 +285,17 @@ function CourseDetail() {
 
   const handleBuyNow = () => {
     if (!user) { navigate("/login"); return; }
-    if (!isStudent) {
-      alert("Only students can purchase.");
-      return;
-    }
-    navigate(`/checkout/${courseIdNum}`);
+    if (!isStudent) { alert("Only students can purchase and enroll in courses. Switch to student mode first."); return; }
+    setBuying(true);
+    navigate(`/checkout/${courseIdNum}`, {
+      state: { course: { course_id: courseIdNum, title: course.title, price: course.price, thumbnail: course.thumbnail || null, level: course.level || "" } },
+    });
+    setBuying(false);
   };
 
   const handleAddToCart = async () => {
     if (!user) { navigate("/login"); return; }
+    if (!isStudent) { alert("Only students can add courses to cart. Switch to student mode first."); return; }
     setCartLoading(true);
     try {
       await axios.post(`${BASE}/cart/add`, { user_id: user.user_id, course_id: courseIdNum });
@@ -285,7 +308,6 @@ function CourseDetail() {
     }
   };
 
-  // Show Edit Course Page
   if (isEditing) {
     return (
       <EditCourse
@@ -300,25 +322,8 @@ function CourseDetail() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="cd-loading-screen">
-        <div className="cd-spinner" />
-        <p>Loading course...</p>
-      </div>
-    );
-  }
-
-  if (errorMsg) {
-    return (
-      <div className="cd-error-screen">
-        <div className="cd-error-icon">!</div>
-        <p>{errorMsg}</p>
-        <button onClick={() => navigate(-1)}>Go Back</button>
-      </div>
-    );
-  }
-
+  if (loading) return <div className="cd-loading-screen"><div className="cd-spinner" /><p>Loading course...</p></div>;
+  if (errorMsg) return <div className="cd-error-screen"><div className="cd-error-icon">!</div><p>{errorMsg}</p><button onClick={() => navigate(-1)}>Go Back</button></div>;
   if (!course) return null;
 
   const thumbnailUrl = buildMediaUrl(course.thumbnail);
@@ -326,26 +331,40 @@ function CourseDetail() {
 
   const renderActionButtons = () => {
     if (enrolled) {
-      return (
-        <button className="cd-action-btn continue" onClick={() => navigate(`/learn/${courseIdNum}`)}>
-          ▶ Continue Learning
-        </button>
-      );
+      return <button className="cd-action-btn continue" onClick={() => navigate(`/learn/${courseIdNum}`)}>▶ Continue Learning</button>;
     }
-    // ... (Your existing action buttons logic) ...
     if (isFree) {
+      if (!user) {
+        return (
+          <>
+            <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>{enrolling ? "Enrolling..." : "Login to Enroll"}</button>
+            <p className="cd-guarantee">✅ No payment required</p>
+          </>
+        );
+      }
+      if (!isStudent) {
+        return (
+          <>
+            <button className="cd-action-btn disabled" disabled>Only students can enroll</button>
+            <p className="cd-guarantee">Switch to student mode to enroll and access this course in My Learning.</p>
+          </>
+        );
+      }
       return (
-        <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>
-          {enrolling ? "Enrolling..." : "Enroll Now — Free"}
-        </button>
+        <>
+          <button className="cd-action-btn enroll" onClick={handleEnroll} disabled={enrolling}>{enrolling ? "Enrolling..." : "Enroll Now — Free"}</button>
+          <p className="cd-guarantee">✅ No payment required</p>
+        </>
       );
     }
     return (
       <>
-        <button className="cd-action-btn buy" onClick={handleBuyNow}>💳 Buy Now</button>
-        <button className="cd-action-btn cart" onClick={handleAddToCart}>
-          <FaShoppingCart /> Add to Cart
+        <button className="cd-action-btn buy" onClick={handleBuyNow} disabled={buying}>{buying ? "Redirecting..." : "💳 Buy Now"}</button>
+        <button className={`cd-action-btn cart ${cartAdded ? "cart-added" : ""}`} onClick={handleAddToCart} disabled={cartAdded || cartLoading}>
+          {cartLoading ? "Adding..." : cartAdded ? "✓ Added to Cart!" : <><FaShoppingCart style={{ marginRight: "8px" }} />Add to Cart</>}
         </button>
+        {cartAdded && <button className="cd-go-to-cart-btn" onClick={() => navigate("/cart")}>🛒 Go to Cart</button>}
+        <p className="cd-guarantee">🔒 Secure Enrollment</p>
       </>
     );
   };
@@ -358,12 +377,8 @@ function CourseDetail() {
       </div>
 
       <div className="cd-wrapper">
-        {/* LEFT - Video Player */}
         <div className="cd-left">
-          <VideoPlayer 
-            videoUrl={currentVideoUrl || mainVideoUrl} 
-            thumbnail={thumbnailUrl} 
-          />
+          <VideoPlayer videoUrl={currentVideoUrl || mainVideoUrl} thumbnail={thumbnailUrl} />
 
           {enrolled && (
             <div className="cd-progress-overlay-bar">
@@ -374,31 +389,22 @@ function CourseDetail() {
             </div>
           )}
 
-          {/* Rest of your left content remains same */}
           <div className="cd-info-section">
             <h1 className="cd-title">{course.title}</h1>
             <p className="cd-description">{course.description}</p>
             <div className="cd-stats-row">
               <div className="cd-stat">
                 <span className="cd-star">★</span>
-                <span className="cd-rating-val">4.9 rating</span>
-              </div>
-              <div className="cd-stat">
-                <span className="cd-stat-icon">👥</span>
-                <span>15,678 students</span>
+                <span className="cd-rating-val">{course.avg_rating > 0 ? `${course.avg_rating} rating` : "No ratings yet"}</span>
               </div>
               <div className="cd-stat">
                 <span className="cd-stat-icon">🕐</span>
                 <span>{totalDurationStr}</span>
               </div>
               <span className="cd-badge level">{course.level}</span>
-
               {isTeacher && (
-                <button className="cd-edit-btn" onClick={() => setIsEditing(true)}>
-                  ✏️ Edit Course
-                </button>
+                <button className="cd-edit-btn" onClick={() => setIsEditing(true)}>✏️ Edit Course</button>
               )}
-
               {course.category && <span className="cd-badge category">{course.category}</span>}
             </div>
           </div>
@@ -412,10 +418,7 @@ function CourseDetail() {
               <div className="cd-instructor-info">
                 <h3>{course.tutor_name || "Instructor"}</h3>
                 {course.tutor_title && <p className="cd-instructor-title">{course.tutor_title}</p>}
-                <div className="cd-instructor-meta">
-                  <span className="cd-meta-rating">★ 4.9 rating</span>
-                  <span>👥 28,450 students</span>
-                </div>
+                <TeacherRating teacherId={course.teacher_id} isStudent={isStudent} />
               </div>
             </div>
           </div>
@@ -425,7 +428,6 @@ function CourseDetail() {
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR - Clickable Lessons */}
         <div className="cd-right">
           <div className="cd-sidebar-card">
             <h3 className="cd-sidebar-title">Course Content</h3>
@@ -437,20 +439,13 @@ function CourseDetail() {
                   key={lesson.id}
                   onClick={() => {
                     setCurrentLesson(lesson);
-                    const lessonVideo = buildMediaUrl(lesson.video_url || lesson.video);
-                    setCurrentVideoUrl(lessonVideo);
+                    setCurrentVideoUrl(buildMediaUrl(lesson.video_url || lesson.video));
                   }}
-                  className={[
-                    "cd-lesson-item",
-                    lesson.completed ? "completed" : "",
-                    currentLesson?.id === lesson.id ? "active" : "",
-                  ].join(" ").trim()}
+                  className={["cd-lesson-item", lesson.completed ? "completed" : "", currentLesson?.id === lesson.id ? "active" : ""].join(" ").trim()}
                   style={{ cursor: "pointer" }}
                 >
                   <div className="cd-lesson-icon">
-                    {lesson.completed
-                      ? <div className="cd-check-filled">✓</div>
-                      : <div className="cd-check-empty" />}
+                    {lesson.completed ? <div className="cd-check-filled">✓</div> : <div className="cd-check-empty" />}
                   </div>
                   <div className="cd-lesson-info">
                     <span className="cd-lesson-title">{idx + 1}. {lesson.title}</span>
@@ -463,10 +458,7 @@ function CourseDetail() {
             <div className="cd-sidebar-divider" />
 
             <div className="cd-price-row">
-              {isFree
-                ? <span className="cd-free-tag">Free</span>
-                : <span className="cd-price">₹ {parseFloat(course.price).toFixed(2)}</span>
-              }
+              {isFree ? <span className="cd-free-tag">Free</span> : <span className="cd-price">₹ {parseFloat(course.price).toFixed(2)}</span>}
             </div>
 
             {renderActionButtons()}

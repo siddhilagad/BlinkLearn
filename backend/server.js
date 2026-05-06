@@ -8,10 +8,10 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const app = express();
-const server = http.createServer(app); // ✅ wrap express with http server
+const server = http.createServer(app);
 
 // ================= SOCKET.IO =================
-const onlineUsers = new Map(); // socket.id -> userId
+const onlineUsers = new Map();
 
 const io = new Server(server, {
   cors: { origin: "http://localhost:3000" }
@@ -46,8 +46,6 @@ io.on("connection", (socket) => {
     db.query(sql, [sender_id, receiver_id, sender_name, message], (err, result) => {
       if (!err) {
         const msg = { id: result.insertId, sender_id, receiver_id, sender_name, message, created_at: new Date() };
-        
-        // Find receiver's socket
         for (let [socketId, uid] of onlineUsers.entries()) {
           if (uid === receiver_id || uid === sender_id) {
             io.to(socketId).emit("receive_private_message", msg);
@@ -81,7 +79,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const db = mysql.createConnection({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
-  password: process.env.DB_PASS || "",
+  password: process.env.DB_PASS || "YourPassword123",
   database: process.env.DB_NAME || "blinklearn",
 });
 
@@ -90,7 +88,8 @@ db.connect((err) => {
     console.log("❌ Database connection failed:", err);
   } else {
     console.log("✅ Connected to MySQL");
-    const createLessonsTable = `
+
+    db.query(`
       CREATE TABLE IF NOT EXISTS lessons (
         lesson_id INT AUTO_INCREMENT PRIMARY KEY,
         course_id INT NOT NULL,
@@ -103,12 +102,9 @@ db.connect((err) => {
         order_index INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    `;
-    db.query(createLessonsTable, (createErr) => {
-      if (createErr) console.error("❌ Failed to ensure lessons table:", createErr);
-    });
+    `, (err) => { if (err) console.error("❌ Failed to ensure lessons table:", err); });
 
-    const createMessagesTable = `
+    db.query(`
       CREATE TABLE IF NOT EXISTS messages (
         id INT AUTO_INCREMENT PRIMARY KEY,
         sender_id INT NOT NULL,
@@ -117,12 +113,9 @@ db.connect((err) => {
         message TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    `;
-    db.query(createMessagesTable, (err) => {
-      if (err) console.error("❌ Failed to ensure messages table:", err);
-    });
+    `, (err) => { if (err) console.error("❌ Failed to ensure messages table:", err); });
 
-    const createReviewsTable = `
+    db.query(`
       CREATE TABLE IF NOT EXISTS reviews (
         id INT AUTO_INCREMENT PRIMARY KEY,
         course_id INT NOT NULL,
@@ -135,10 +128,7 @@ db.connect((err) => {
         FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    `;
-    db.query(createReviewsTable, (err) => {
-      if (err) console.error("❌ Failed to ensure reviews table:", err);
-    });
+    `, (err) => { if (err) console.error("❌ Failed to ensure reviews table:", err); });
   }
 });
 
@@ -150,7 +140,6 @@ app.post("/register", (req, res) => {
   const role = accountType?.toLowerCase();
   if (!["student", "teacher"].includes(role))
     return res.status(400).json({ message: "Invalid account type" });
-
   db.query(
     "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
     [fullname, email, password, role],
@@ -184,8 +173,7 @@ app.post("/login", (req, res) => {
 const profileStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
     cb(null, uniqueName);
   },
 });
@@ -225,22 +213,14 @@ app.put("/api/onboarding-done/:userId", (req, res) => {
 // ================= STUDENT STATS =================
 app.get("/student-stats/:userId", (req, res) => {
   const { userId } = req.params;
-  db.query(
-    "SELECT COUNT(*) AS totalEnrolled FROM enrollments WHERE user_id = ?",
-    [userId],
-    (err, enrollResult) => {
-      if (err) return res.status(500).json({ message: "DB error" });
-      const totalEnrolled = enrollResult[0].totalEnrolled;
-      db.query(
-        "SELECT COUNT(*) AS wishlistCount FROM wishlist WHERE user_id = ?",
-        [userId],
-        (err2, wishResult) => {
-          const wishlistCount = err2 ? 0 : wishResult[0].wishlistCount;
-          res.json({ totalEnrolled, completedCourses: 0, streakDays: 0, wishlistCount });
-        }
-      );
-    }
-  );
+  db.query("SELECT COUNT(*) AS totalEnrolled FROM enrollments WHERE user_id = ?", [userId], (err, enrollResult) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    const totalEnrolled = enrollResult[0].totalEnrolled;
+    db.query("SELECT COUNT(*) AS wishlistCount FROM wishlist WHERE user_id = ?", [userId], (err2, wishResult) => {
+      const wishlistCount = err2 ? 0 : wishResult[0].wishlistCount;
+      res.json({ totalEnrolled, completedCourses: 0, streakDays: 0, wishlistCount });
+    });
+  });
 });
 
 // ================= TEACHER STUDENTS =================
@@ -260,14 +240,10 @@ app.get("/teacher-students/:teacherId", (req, res) => {
 // ================= CHECK ENROLLMENT =================
 app.get("/check-enrollment/:userId/:courseId", (req, res) => {
   const { userId, courseId } = req.params;
-  db.query(
-    "SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?",
-    [userId, courseId],
-    (err, result) => {
-      if (err) return res.status(500).json({ message: "DB error" });
-      res.json({ enrolled: result.length > 0 });
-    }
-  );
+  db.query("SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?", [userId, courseId], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ enrolled: result.length > 0 });
+  });
 });
 
 // ================= CHAT ROUTES =================
@@ -305,6 +281,7 @@ app.use("/api/auth", authRoutes);
 // ================= MOUNT COURSE ROUTES =================
 const courseRoutes = require("./src/routes/courseRoutes");
 app.use("/api", courseRoutes);
+
 app.get('/api/course/:courseId/lessons', (req, res) => {
   db.query(
     'SELECT * FROM lessons WHERE course_id = ? ORDER BY order_index ASC',
@@ -319,8 +296,51 @@ app.get('/api/course/:courseId/lessons', (req, res) => {
   );
 });
 
+// ================= TEACHER RATING ROUTES =================
+// ✅ check आधी — नाहीतर /:teacherId त्याला catch करतो
+app.get("/api/teacher-rating/check/:teacherId/:studentId", (req, res) => {
+  const { teacherId, studentId } = req.params;
+  db.query(
+    "SELECT rating FROM teacher_ratings WHERE teacher_id = ? AND student_id = ?",
+    [teacherId, studentId],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: "DB error" });
+      if (result.length > 0) res.json({ rated: true, rating: result[0].rating });
+      else res.json({ rated: false });
+    }
+  );
+});
+
+// ✅ avg rating — check च्या नंतर
+app.get("/api/teacher-rating/:teacherId", (req, res) => {
+  const sql = `
+    SELECT ROUND(AVG(rating), 1) AS avgRating, COUNT(id) AS totalRatings
+    FROM teacher_ratings
+    WHERE teacher_id = ?
+  `;
+  db.query(sql, [req.params.teacherId], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({
+      avgRating: result[0].avgRating || 0,
+      totalRatings: result[0].totalRatings || 0
+    });
+  });
+});
+
+// ✅ POST rating
+app.post("/api/teacher-rating", (req, res) => {
+  const { teacher_id, student_id, rating } = req.body;
+  db.query(
+    "INSERT INTO teacher_ratings (teacher_id, student_id, rating) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE rating = ?",
+    [teacher_id, student_id, rating, rating],
+    (err) => {
+      if (err) return res.status(500).json({ message: "Rating failed" });
+      res.json({ message: "Rating submitted" });
+    }
+  );
+});
+
 // ================= SERVER =================
-// ✅ Use server.listen (not app.listen) so Socket.io works
 server.listen(5000, "0.0.0.0", () => {
   console.log("🚀 Server running on port 5000");
 });

@@ -8,6 +8,7 @@ function TeacherDashboard() {
   const [user, setUser] = useState(null);
   const [totalCourses, setTotalCourses] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
+  const [avgRating, setAvgRating] = useState(0); // ✅ नवीन state
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -30,13 +31,15 @@ function TeacherDashboard() {
 
   const fetchStats = async (teacherId) => {
     try {
-      // ✅ Fixed: added /api
       const coursesRes = await axios.get(`http://localhost:5000/api/teacher-courses/${teacherId}`);
       setTotalCourses(coursesRes.data.length);
 
-      // ✅ teacher-students is in server.js directly, no /api needed
       const studentsRes = await axios.get(`http://localhost:5000/teacher-students/${teacherId}`);
       setTotalStudents(studentsRes.data.totalStudents);
+
+      // ✅ नवीन - teacher average rating fetch
+      const ratingRes = await axios.get(`http://localhost:5000/api/teacher-rating/${teacherId}`);
+      setAvgRating(ratingRes.data.avgRating);
     } catch (err) {
       console.error("Failed to fetch stats:", err);
     }
@@ -120,7 +123,8 @@ function TeacherDashboard() {
         <div className="teacher-stats-grid">
           <div className="teacher-stat-card"><h3>{totalCourses}</h3><p>Total Courses</p></div>
           <div className="teacher-stat-card"><h3>{totalStudents}</h3><p>Total Students</p></div>
-          <div className="teacher-stat-card"><h3>{user?.rating || 0}</h3><p>Rating</p></div>
+          {/* ✅ avgRating backend वरून येतो */}
+          <div className="teacher-stat-card"><h3>{avgRating > 0 ? `⭐ ${avgRating}` : "—"}</h3><p>Avg Rating</p></div>
           <div className="teacher-stat-card"><h3>{user?.specialization || "Not Added"}</h3><p>Specialization</p></div>
         </div>
 
