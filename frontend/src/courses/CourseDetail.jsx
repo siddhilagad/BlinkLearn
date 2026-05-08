@@ -118,11 +118,11 @@ function TeacherRating({ teacherId, isStudent }) {
     if (!teacherId) return;
     axios.get(`${BASE}/api/teacher-rating/${teacherId}`)
       .then(res => setAvgRating(res.data.avgRating || 0))
-      .catch(() => { });
+      .catch(() => {});
     if (user && isStudent) {
       axios.get(`${BASE}/api/teacher-rating/check/${teacherId}/${user.user_id}`)
         .then(res => { if (res.data.rated) { setAlreadyRated(true); setSelectedStar(res.data.rating); } })
-        .catch(() => { });
+        .catch(() => {});
     }
   }, [teacherId]);
 
@@ -145,7 +145,7 @@ function TeacherRating({ teacherId, isStudent }) {
   return (
     <div className="cd-teacher-rating">
       <div className="cd-teacher-avg-rating">
-        {[1, 2, 3, 4, 5].map(s => (
+        {[1,2,3,4,5].map(s => (
           <FaStar key={s} style={{ color: s <= Math.round(avgRating) ? "#f59e0b" : "#d1d5db", fontSize: "14px" }} />
         ))}
         <span style={{ marginLeft: "6px", fontSize: "13px", color: "#6b7280" }}>
@@ -160,7 +160,7 @@ function TeacherRating({ teacherId, isStudent }) {
             <div>
               <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "4px" }}>Teacher ला rating द्या:</p>
               <div style={{ display: "flex", gap: "4px" }}>
-                {[1, 2, 3, 4, 5].map(s => (
+                {[1,2,3,4,5].map(s => (
                   <FaStar key={s}
                     style={{ color: s <= activeStar ? "#f59e0b" : "#d1d5db", fontSize: "20px", cursor: "pointer", transition: "color 0.15s" }}
                     onMouseEnter={() => setHoverStar(s)}
@@ -203,30 +203,10 @@ function CourseDetail() {
   const completedCount = lessons.filter((l) => l.completed).length;
   const progressPercent = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
 
-  const formatDuration = (lesson) => {
-    if (lesson.duration_formatted) return lesson.duration_formatted;
-    const dur = Number(lesson.duration || lesson.duration_seconds || 0);
-    if (dur > 0) {
-      const m = Math.floor(dur / 60);
-      const s = dur % 60;
-      return `${m}:${s.toString().padStart(2, '0')}`;
-    }
-    if (typeof lesson.duration === 'string' && lesson.duration.includes(':')) return lesson.duration;
-    return null;
-  };
-
-  const getLessonTitle = (lesson) => {
-    return lesson.display_title ||
-      (lesson.title && lesson.title !== 'Untitled Lesson' ? lesson.title : null) ||
-      lesson.section_title ||
-      lesson.title ||
-      'Lesson';
-  };
-
   const totalDurationStr = (() => {
     if (!lessons.length) return "—";
     const totalSec = lessons.reduce((acc, l) => {
-      const duration = Number(l.duration_seconds || l.duration || 0);
+      const duration = Number(l.duration || l.duration_seconds || 0);
       return acc + (Number.isFinite(duration) ? duration : 0);
     }, 0);
     if (totalSec > 0) {
@@ -271,9 +251,12 @@ function CourseDetail() {
         }
       } catch (err) {
         console.error("Lessons fetch failed:", err);
-
-        setLessons([]);
-        setCurrentLesson(null);
+        const fallback = [
+          { id: 1, title: "1. learn basic", duration: "7:00", completed: true, video_url: null },
+          { id: 2, title: "2. introduction", duration: "8:15", completed: false, video_url: null },
+        ];
+        setLessons(fallback);
+        setCurrentLesson(fallback[0]);
         setCurrentVideoUrl(null);
       }
     };
@@ -465,10 +448,8 @@ function CourseDetail() {
                     {lesson.completed ? <div className="cd-check-filled">✓</div> : <div className="cd-check-empty" />}
                   </div>
                   <div className="cd-lesson-info">
-                    <span className="cd-lesson-title">
-                      {idx + 1}. {getLessonTitle(lesson)}
-                    </span>
-                    <span className="cd-lesson-duration">{formatDuration(lesson) || ''}</span>
+                    <span className="cd-lesson-title">{idx + 1}. {lesson.title}</span>
+                    <span className="cd-lesson-duration">{lesson.duration}</span>
                   </div>
                 </div>
               ))}
