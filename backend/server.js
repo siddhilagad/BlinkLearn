@@ -91,14 +91,15 @@ db.connect((err) => {
 
     db.query(`
       CREATE TABLE IF NOT EXISTS lessons (
-        lesson_id INT AUTO_INCREMENT PRIMARY KEY,
+        id INT AUTO_INCREMENT PRIMARY KEY,
         course_id INT NOT NULL,
+        section_id INT,
         section_title VARCHAR(255),
         title VARCHAR(255) NOT NULL,
         type VARCHAR(50) DEFAULT 'video',
-        duration VARCHAR(50),
+        duration INT DEFAULT 0,
         description TEXT,
-        video_url VARCHAR(255),
+        video_url VARCHAR(500),
         order_index INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -291,7 +292,21 @@ app.get('/api/course/:courseId/lessons', (req, res) => {
         console.error("Lessons fetch error:", err);
         return res.status(500).json({ message: "Failed to fetch lessons" });
       }
-      res.json(rows);
+      // Format each lesson: use section_title as fallback for title, format duration
+      const formatted = (rows || []).map(row => {
+        const dur = Number(row.duration) || 0;
+        const mins = Math.floor(dur / 60);
+        const secs = dur % 60;
+        return {
+          ...row,
+          display_title: (row.title && row.title !== 'Untitled Lesson')
+            ? row.title
+            : (row.section_title || row.title || 'Untitled Lesson'),
+          duration_formatted: dur > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : null,
+          duration_seconds: dur,
+        };
+      });
+      res.json(formatted);
     }
   );
 });

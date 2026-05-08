@@ -15,6 +15,7 @@ const db = mysql.createConnection({
 db.connect((err) => {
   if (err) { console.error("❌ CourseRoutes DB connection failed:", err); return; }
   console.log("✅ CourseRoutes connected to MySQL");
+<<<<<<< Updated upstream
   db.query(`CREATE TABLE IF NOT EXISTS lessons (
     lesson_id INT AUTO_INCREMENT PRIMARY KEY, course_id INT NOT NULL, section_id INT,
     title VARCHAR(255) NOT NULL, type VARCHAR(50) DEFAULT 'video', duration VARCHAR(50),
@@ -22,6 +23,27 @@ db.connect((err) => {
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => {
     if (err) console.error("Failed to ensure lessons table:", err);
+=======
+
+  // Ensure lessons table exists
+  const createLessonsTable = `
+    CREATE TABLE IF NOT EXISTS lessons (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      course_id INT NOT NULL,
+      section_id INT,
+      section_title VARCHAR(255),
+      title VARCHAR(255) NOT NULL,
+      type VARCHAR(50) DEFAULT 'video',
+      duration INT DEFAULT 0,
+      description TEXT,
+      video_url VARCHAR(500),
+      order_index INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `;
+  db.query(createLessonsTable, (createErr) => {
+    if (createErr) console.error("❌ Failed to ensure lessons table:", createErr);
+>>>>>>> Stashed changes
   });
 });
 
@@ -73,6 +95,7 @@ router.post("/add-course", upload.any(), (req, res) => {
       if (err) { console.error("DB Error:", err); return res.status(500).json({ message: "Course add failed", error: err.message }); }
       if (parsedSections.length === 0) return res.json({ message: "Course added successfully", course_id: result.insertId, thumbnail, preview_video });
 
+<<<<<<< Updated upstream
       const sectionRows = parsedSections.map((section, index) => [result.insertId, section.title?.trim() || `Section ${index + 1}`, index]);
       db.query(`INSERT INTO course_sections (course_id, title, order_index) VALUES ?`, [sectionRows], (sectionErr, sectionResult) => {
         if (sectionErr) return res.status(500).json({ message: "Course created but section save failed", error: sectionErr.message });
@@ -86,15 +109,73 @@ router.post("/add-course", upload.any(), (req, res) => {
             const lessonFile = lesson.videoField ? filesMap[lesson.videoField] : null;
             lessonRows.push([result.insertId, sectionId, lesson.title || "Untitled Lesson", lesson.type || "video", parseInt(lesson.duration, 10) || 0, lessonFile?.filename || null, sectionIndex * 1000 + lessonIndex]);
           });
+=======
+      if (parsedSections.length === 0) {
+        return res.json({
+          message: "Course added successfully",
+          course_id: result.insertId,
+          thumbnail,
+          preview_video,
+>>>>>>> Stashed changes
         });
 
+<<<<<<< Updated upstream
         const finish = () => res.json({ message: "Course added successfully", course_id: result.insertId, thumbnail, preview_video });
         if (lessonRows.length === 0) return finish();
         db.query(`INSERT INTO lessons (course_id, section_id, title, type, duration, video_url, order_index) VALUES ?`, [lessonRows], (lessonErr) => {
           if (lessonErr) return res.status(500).json({ message: "Course created but lesson save failed", error: lessonErr.message });
           finish();
+=======
+      const course_id = result.insertId;
+      let order_index = 0;
+      const lessonInsertPromises = [];
+
+      parsedSections.forEach((section) => {
+        section.lessons.forEach((lesson) => {
+          const lessonTitle = lesson.title || section.title || 'Untitled Lesson';
+          const videoFile = filesMap[lesson.videoField]?.filename || null;
+          
+          const insertSql = `
+            INSERT INTO lessons (course_id, section_title, title, type, duration, video_url, order_index)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `;
+          const values = [
+            course_id,
+            section.title || null,
+            lessonTitle,
+            lesson.type || 'video',
+            lesson.duration || 0,
+            videoFile,
+            order_index++
+          ];
+          
+          console.log('Inserting lesson:', values);
+          
+          lessonInsertPromises.push(new Promise((resolve, reject) => {
+            db.query(insertSql, values, (err) => {
+              if (err) {
+                console.error('Lesson insert error:', err);
+                reject(err);
+              } else resolve();
+            });
+          }));
+>>>>>>> Stashed changes
         });
       });
+
+      Promise.all(lessonInsertPromises)
+        .then(() => {
+          res.json({
+            message: "Course and lessons added successfully",
+            course_id,
+            thumbnail,
+            preview_video,
+          });
+        })
+        .catch((err) => {
+          console.error("❌ Lesson insert error:", err);
+          res.status(500).json({ message: "Course added but lessons failed", error: err.message });
+        });
     }
   );
 });
@@ -207,6 +288,7 @@ router.delete("/delete-course/:courseId", (req, res) => {
 // ================= ENROLL =================
 router.post("/enroll", (req, res) => {
   const { user_id, course_id } = req.body;
+<<<<<<< Updated upstream
   if (!user_id || !course_id) return res.status(400).json({ message: "user_id and course_id are required" });
   db.query("SELECT role FROM users WHERE user_id = ?", [user_id], (err, userRows) => {
     if (err) return res.status(500).json({ message: "DB error" });
@@ -221,6 +303,28 @@ router.post("/enroll", (req, res) => {
       });
     });
   });
+=======
+  if (!user_id || !course_id) {
+    return res.status(400).json({ message: "user_id and course_id are required" });
+  }
+  // Check if already enrolled
+  db.query(
+    "SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?",
+    [user_id, course_id],
+    (err, existing) => {
+      if (err) return res.status(500).json({ message: "DB error" });
+      if (existing.length > 0) return res.status(400).json({ message: "Already enrolled" });
+      db.query(
+        "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)",
+        [user_id, course_id],
+        (err2) => {
+          if (err2) return res.status(500).json({ message: "Enrollment failed" });
+          res.json({ message: "Enrolled successfully" });
+        }
+      );
+    }
+  );
+>>>>>>> Stashed changes
 });
 
 // ================= STATS =================
